@@ -1,0 +1,6 @@
+{
+  "name": "Premium Travel & Tours Pvt. Ltd.",
+  "description": "Nepal's premier travel agency offering domestic and international flight bookings, luxury Himalayan accommodation, private 4WD & fleet rental, and exclusive combo holiday packages.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
