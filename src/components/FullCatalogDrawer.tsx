@@ -191,6 +191,12 @@ export const FullCatalogDrawer: React.FC<FullCatalogDrawerProps> = ({
                     alt={hotel.name}
                     className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl object-cover shrink-0"
                     referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      if (!target.src.includes('unsplash')) {
+                        target.src = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=400&q=80';
+                      }
+                    }}
                   />
                   <div className="flex-1 flex flex-col justify-between">
                     <div>
@@ -238,6 +244,12 @@ export const FullCatalogDrawer: React.FC<FullCatalogDrawerProps> = ({
                     alt={vehicle.name}
                     className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl object-cover shrink-0"
                     referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      if (!target.src.includes('unsplash')) {
+                        target.src = 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=400&q=80';
+                      }
+                    }}
                   />
                   <div className="flex-1 flex flex-col justify-between">
                     <div>

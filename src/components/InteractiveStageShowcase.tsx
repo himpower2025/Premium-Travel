@@ -72,7 +72,7 @@ export const InteractiveStageShowcase: React.FC<InteractiveStageShowcaseProps> =
       title: 'Himalayan Flight Corridors & Lukla Skyways',
       subtitle: 'Pressurized ATR 72-500 & Twin Otter mountain flights with direct runway transfers & priority baggage clearance.',
       serviceType: 'flights',
-      image: '/src/assets/images/hero_himalayas_travel_1790502254393.jpg',
+      image: '/images/hero_himalayas_travel_1790502254393.jpg',
       badge: 'Certified High-Altitude Operator',
       altitude: '8,848m Peak Views · 2,846m Lukla Runway',
       location: 'Kathmandu (KTM) ⇄ Lukla (LUA) / Pokhara (PKR)',
@@ -93,7 +93,7 @@ export const InteractiveStageShowcase: React.FC<InteractiveStageShowcaseProps> =
       title: 'The Pavilions Himalayas Luxury Lake Sanctuary',
       subtitle: 'Award-winning eco-luxury villa resort nestled in the valley folds of Pokhara with Annapurna panoramic vistas.',
       serviceType: 'hotels',
-      image: '/src/assets/images/luxury_hotel_nepal_1790502269931.jpg',
+      image: '/images/hotel_nepal_resort_1790502269336.jpg',
       badge: '5-Star Platinum Eco-Sanctuary',
       altitude: '822m Pokhara Valley View',
       location: 'Phewa Lake Foothills, Pokhara, Nepal',
@@ -114,7 +114,7 @@ export const InteractiveStageShowcase: React.FC<InteractiveStageShowcaseProps> =
       title: 'Mahindra Scorpio 4x4 & Toyota Prado Armory',
       subtitle: 'Heavy-duty four-wheel-drive expedition vehicles with veteran English-speaking Himalayan mountain drivers.',
       serviceType: 'vehicles',
-      image: '/src/assets/images/scorpio_4wd_nepal_1790502288078.jpg',
+      image: '/images/fleet_nepal_suv_1790502281718.jpg',
       badge: 'Extreme Terrain All-Access Fleet',
       altitude: 'Rated up to 4,200m Mustang & Manang Passes',
       location: 'Available Nationwide · Kathmandu / Pokhara / Chitwan',
@@ -135,7 +135,7 @@ export const InteractiveStageShowcase: React.FC<InteractiveStageShowcaseProps> =
       title: 'The Himalayan Triple Crown (3-in-1 Odyssey)',
       subtitle: 'Return flights + 3 nights 5-star mountain resort + private chauffeured 4WD SUV at 25% bundled savings.',
       serviceType: 'promotions',
-      image: '/src/assets/images/combo_himalayan_package_1790502305844.jpg',
+      image: '/images/package_everest_safari_1790502295387.jpg',
       badge: 'All-Inclusive Luxury Signature Tour',
       altitude: 'Multi-Altitude: 1,400m ⇄ 822m ⇄ 3,800m',
       location: 'Kathmandu + Pokhara + Annapurna Panorama',
@@ -332,6 +332,12 @@ export const InteractiveStageShowcase: React.FC<InteractiveStageShowcaseProps> =
                 alt={currentSlide.title}
                 className="w-full h-full object-cover object-center transform transition-transform duration-700 group-hover:scale-105"
                 referrerPolicy="no-referrer"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  if (!target.src.includes('unsplash')) {
+                    target.src = 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=1920&q=80';
+                  }
+                }}
               />
 
               {/* Luminous Scrim Gradient */}

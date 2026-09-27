@@ -81,10 +81,16 @@ export const FlywardHero: React.FC<FlywardHeroProps> = ({
       {/* Radiant Himalayan Mountain Panorama Backdrop */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
         <img
-          src="/src/assets/images/hero_himalayas_travel_1790502254393.jpg"
+          src="/images/hero_himalayas_travel_1790502254393.jpg"
           alt="Himalayan mountain flight over Nepal peaks"
           className="w-full h-full object-cover object-center scale-100 opacity-65 sm:opacity-75 filter brightness-105 contrast-105"
           referrerPolicy="no-referrer"
+          onError={(e) => {
+            const target = e.currentTarget;
+            if (!target.src.includes('unsplash')) {
+              target.src = 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=1920&q=80';
+            }
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-blue-900/30 via-sky-800/10 to-[#eef5fc]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_90%_70%_at_50%_15%,transparent_0%,#eef5fc_95%)]" />

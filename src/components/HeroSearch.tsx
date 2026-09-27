@@ -74,10 +74,16 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({
       {/* Background Image: Vivid, Sunlit, Highlighting Himalayan Majesty */}
       <div className="absolute inset-0 z-0">
         <img
-          src="/src/assets/images/hero_himalayas_travel_1790502254393.jpg"
+          src="/images/hero_himalayas_travel_1790502254393.jpg"
           alt="Himalayan flight view over majestic peaks in Nepal"
           className="w-full h-full object-cover object-center scale-105 transition-transform duration-1000"
           referrerPolicy="no-referrer"
+          onError={(e) => {
+            const target = e.currentTarget;
+            if (!target.src.includes('unsplash')) {
+              target.src = 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=1920&q=80';
+            }
+          }}
         />
         {/* Luminous, Vibrant Overlay that reveals the photo while keeping text crisp */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#0a2342]/85 via-[#0b2f5c]/45 to-[#f2f6fa]" />
