@@ -77,28 +77,14 @@ export const FlywardHero: React.FC<FlywardHeroProps> = ({
   };
 
   return (
-    <section id="hero" className="relative min-h-[85vh] sm:min-h-[90vh] flex flex-col justify-between pt-4 sm:pt-8 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 overflow-hidden bg-gradient-to-b from-[#e8f2fc] via-[#f4f9fd] to-[#eef5fc] text-slate-900">
-      {/* Radiant Himalayan Mountain Panorama Backdrop */}
+    <section id="hero" className="relative min-h-[85vh] sm:min-h-[90vh] flex flex-col justify-between pt-4 sm:pt-8 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 overflow-hidden bg-transparent text-slate-900">
+      {/* Radiant Himalayan Mountain Panorama Atmospheric Overlay */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        <img
-          src="/images/hero_himalayas_travel_1790502254393.jpg"
-          alt="Himalayan mountain flight over Nepal peaks"
-          className="w-full h-full object-cover object-center scale-100 opacity-65 sm:opacity-75 filter brightness-105 contrast-105"
-          referrerPolicy="no-referrer"
-          onError={(e) => {
-            const target = e.currentTarget;
-            if (!target.src.includes('unsplash')) {
-              target.src = 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=1920&q=80';
-            }
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-blue-900/30 via-sky-800/10 to-[#eef5fc]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_90%_70%_at_50%_15%,transparent_0%,#eef5fc_95%)]" />
-        <div className="absolute inset-0 opacity-20 bg-[linear-gradient(to_right,#0284c7_1px,transparent_1px),linear-gradient(to_bottom,#0284c7_1px,transparent_1px)] bg-[size:3rem_3rem] sm:bg-[size:4rem_4rem]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-blue-950/10 via-transparent to-slate-900/10" />
       </div>
 
       {/* Top Live Status Ticker */}
-      <div className="relative z-10 max-w-7xl w-full mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-4 py-2 sm:py-2.5 px-3.5 sm:px-5 rounded-2xl bg-white/90 backdrop-blur-md border border-white/80 shadow-sm text-xs text-slate-700">
+      <div className="relative z-10 max-w-[1680px] w-full mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-4 py-2 sm:py-2.5 px-3.5 sm:px-5 rounded-2xl bg-white/90 backdrop-blur-md border border-white/80 shadow-sm text-xs text-slate-700">
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-center sm:justify-start">
           <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-800 font-bold text-[11px] sm:text-xs">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
@@ -124,7 +110,7 @@ export const FlywardHero: React.FC<FlywardHeroProps> = ({
       </div>
 
       {/* Main Editorial Hero Canvas */}
-      <div className="relative z-10 max-w-5xl w-full mx-auto my-auto py-6 sm:py-10 flex flex-col items-center text-center">
+      <div className="relative z-10 max-w-5xl lg:max-w-6xl xl:max-w-7xl 2xl:max-w-[1500px] w-full mx-auto my-auto py-6 sm:py-10 flex flex-col items-center text-center">
         {/* Simple & clear badge */}
         <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/95 backdrop-blur-md border border-blue-200 text-xs font-bold text-blue-900 mb-4 sm:mb-5 shadow-xs">
           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
@@ -132,19 +118,19 @@ export const FlywardHero: React.FC<FlywardHeroProps> = ({
         </div>
 
         {/* Clear, attractive headline */}
-        <h1 className="text-3xl sm:text-5xl md:text-6xl font-cinzel font-black text-slate-900 tracking-tight leading-[1.15] text-balance">
+        <h1 className="text-3xl sm:text-5xl md:text-6xl xl:text-7xl font-cinzel font-black text-slate-900 tracking-tight leading-[1.15] text-balance">
           Explore Nepal with Confidence <br />
           <span className="bg-gradient-to-r from-blue-900 via-indigo-900 to-amber-600 bg-clip-text text-transparent">
             Flights, Mountain Lodges &amp; 4WD Cars
           </span>
         </h1>
 
-        <p className="mt-3.5 sm:mt-4 text-sm sm:text-base md:text-lg text-slate-700 max-w-2xl mx-auto leading-relaxed font-normal">
+        <p className="mt-3.5 sm:mt-4 text-sm sm:text-base md:text-lg xl:text-xl text-slate-700 max-w-3xl mx-auto leading-relaxed font-normal">
           Book Everest and Pokhara scenic flights, hand-picked 5-star mountain resorts, and reliable 4WD vehicles with licensed drivers—all with instant official e-tickets.
         </p>
 
         {/* 4 Service Shortcut Buttons */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3.5 w-full max-w-4xl mt-6 sm:mt-8">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 xl:gap-5 w-full max-w-4xl lg:max-w-5xl xl:max-w-6xl mt-6 sm:mt-8">
           {[
             { id: 'aviation', number: '01', title: 'Mountain Flights', subtitle: 'Lukla & Pokhara routes', icon: <Plane className="w-4 h-4 text-blue-700" /> },
             { id: 'sanctuaries', number: '02', title: 'Resorts & Hotels', subtitle: 'Annapurna & valley views', icon: <Building2 className="w-4 h-4 text-amber-600" /> },
@@ -154,7 +140,7 @@ export const FlywardHero: React.FC<FlywardHeroProps> = ({
             <button
               key={col.id}
               onClick={() => scrollToSection(col.id)}
-              className="group p-3 sm:p-3.5 rounded-2xl bg-white/95 hover:bg-white border border-slate-200/90 hover:border-blue-500 text-left transition-all cursor-pointer shadow-sm hover:shadow-md"
+              className="group p-3 sm:p-4 rounded-2xl bg-white/95 hover:bg-white border border-slate-200/90 hover:border-blue-500 text-left transition-all cursor-pointer shadow-sm hover:shadow-md"
             >
               <div className="flex items-center justify-between">
                 <span className="font-mono text-[11px] font-bold text-blue-900 bg-blue-50 px-2 py-0.5 rounded-md">
@@ -175,7 +161,7 @@ export const FlywardHero: React.FC<FlywardHeroProps> = ({
         </div>
 
         {/* Integrated Quick Search Deck */}
-        <div className="w-full max-w-4xl mt-6 sm:mt-8 bg-white/95 backdrop-blur-xl border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl shadow-blue-900/5">
+        <div className="w-full max-w-4xl lg:max-w-5xl xl:max-w-6xl mt-6 sm:mt-8 bg-white/95 backdrop-blur-xl border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-7 shadow-xl shadow-blue-900/5">
           {/* Tab Selector */}
           <div className="flex flex-wrap items-center justify-between border-b border-slate-100 pb-3 mb-4 gap-2">
             <div className="flex items-center gap-1.5 sm:gap-2">

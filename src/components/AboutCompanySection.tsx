@@ -27,8 +27,8 @@ export const AboutCompanySection: React.FC = () => {
   };
 
   return (
-    <section id="about" className="py-14 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-[#f0f6fa] via-white to-[#e8f1fa] text-slate-900 border-t border-slate-200/90 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto relative z-10">
+    <section id="about" className="py-14 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-10 xl:px-14 bg-gradient-to-b from-white/70 via-white/60 to-white/70 backdrop-blur-sm text-slate-900 border-t border-slate-200/60 relative overflow-hidden">
+      <div className="max-w-[1680px] w-full mx-auto relative z-10">
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 sm:mb-12 gap-4 sm:gap-6 border-b border-slate-200 pb-6 sm:pb-8">
           <div>
@@ -50,7 +50,7 @@ export const AboutCompanySection: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 xl:gap-12 items-start">
           {/* Left Column: Company Background & Value Pillars */}
           <div className="lg:col-span-7 space-y-6 sm:space-y-8">
             <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-7 space-y-4 shadow-sm">

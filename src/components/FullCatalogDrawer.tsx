@@ -56,7 +56,7 @@ export const FullCatalogDrawer: React.FC<FullCatalogDrawerProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/60 backdrop-blur-xs animate-fadeIn">
-      <div className="w-full max-w-xl sm:max-w-2xl bg-white border-l border-slate-200 h-full flex flex-col shadow-2xl text-slate-900">
+      <div className="w-full max-w-xl sm:max-w-2xl lg:max-w-3xl bg-white border-l border-slate-200 h-full flex flex-col shadow-2xl text-slate-900">
         
         {/* Drawer Header */}
         <div className="p-4 sm:p-6 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-blue-900 via-indigo-900 to-blue-950 text-white">

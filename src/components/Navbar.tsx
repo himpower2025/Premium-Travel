@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Currency, ServiceType } from '../types/travel';
+import { useSiteConfig } from '../context/SiteConfigContext';
 import {
   Plane,
   Building2,
@@ -8,9 +9,8 @@ import {
   Building,
   Menu,
   X,
-  Phone,
-  Briefcase,
-  ChevronDown
+  ChevronDown,
+  Compass
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -18,8 +18,8 @@ interface NavbarProps {
   onCurrencyChange: (currency: Currency) => void;
   activeService: ServiceType;
   onSelectService: (service: ServiceType) => void;
-  bookingCount: number;
-  onOpenBookings: () => void;
+  bookingCount?: number;
+  onOpenBookings?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -27,9 +27,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onCurrencyChange,
   activeService,
   onSelectService,
-  bookingCount,
-  onOpenBookings,
 }) => {
+  const { siteConfig } = useSiteConfig();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currencyDropdownOpen, setCurrencyDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -44,30 +43,35 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const currencies: Currency[] = ['USD', 'NPR', 'EUR', 'GBP'];
 
-  const navLinks: { type: ServiceType; label: string; icon: React.ReactNode }[] = [
-    { type: 'flights', label: 'Flights', icon: <Plane className="w-4 h-4" /> },
-    { type: 'hotels', label: 'Hotels & Lodges', icon: <Building2 className="w-4 h-4" /> },
-    { type: 'vehicles', label: '4WD Vehicles', icon: <Car className="w-4 h-4" /> },
-    { type: 'promotions', label: 'Packages', icon: <Sparkles className="w-4 h-4 text-amber-300" /> },
-    { type: 'about', label: 'About Us', icon: <Building className="w-4 h-4" /> },
-  ];
+  const getMenuIcon = (iconName: string) => {
+    switch (iconName) {
+      case 'Plane':
+        return <Plane className="w-4 h-4" />;
+      case 'Building2':
+        return <Building2 className="w-4 h-4" />;
+      case 'Car':
+        return <Car className="w-4 h-4" />;
+      case 'Sparkles':
+        return <Sparkles className="w-4 h-4 text-amber-300" />;
+      case 'Building':
+        return <Building className="w-4 h-4" />;
+      default:
+        return <Compass className="w-4 h-4" />;
+    }
+  };
 
-  const handleNavClick = (service: ServiceType) => {
-    onSelectService(service);
+  const handleNavClick = (targetSectionId: string, serviceKey: string) => {
+    onSelectService(serviceKey as ServiceType);
     setMobileMenuOpen(false);
-    const targetMap: Record<ServiceType, string> = {
-      flights: 'aviation',
-      hotels: 'sanctuaries',
-      vehicles: 'fleet',
-      promotions: 'odysseys',
-      about: 'about',
-    };
-    const targetId = targetMap[service] || service;
-    const element = document.getElementById(targetId);
+    const element = document.getElementById(targetSectionId);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
   };
+
+  const visibleMenus = siteConfig.menus
+    .filter((m) => m.visible)
+    .sort((a, b) => a.order - b.order);
 
   return (
     <header
@@ -77,7 +81,15 @@ export const Navbar: React.FC<NavbarProps> = ({
           : 'bg-[#0c2a50] py-3.5 border-b border-blue-900/30'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+      {/* Optional Top Live Announcement Ticker */}
+      {siteConfig.company.tickerActive && siteConfig.company.tickerNotice && (
+        <div className="bg-amber-400 text-slate-950 text-[11px] font-bold py-1 px-4 text-center flex items-center justify-center gap-2 overflow-hidden select-none">
+          <span className="w-1.5 h-1.5 rounded-full bg-slate-950 animate-ping" />
+          <span className="truncate">{siteConfig.company.tickerNotice}</span>
+        </div>
+      )}
+
+      <div className="max-w-[1680px] w-full mx-auto px-4 sm:px-6 lg:px-10 xl:px-14 flex items-center justify-between">
         {/* Brand Logo & Gov Accreditation */}
         <div
           onClick={() => {
@@ -100,56 +112,53 @@ export const Navbar: React.FC<NavbarProps> = ({
               </span>
             </div>
             <p className="text-[10px] text-sky-200/90 tracking-wide font-sans line-clamp-1">
-              Ministry of Tourism Regd. No. 19842
+              Govt. Reg # {siteConfig.company.registrationNumber}
             </p>
           </div>
         </div>
 
-        {/* Desktop Navigation Links */}
-        <nav className="hidden lg:flex items-center gap-1 bg-white/5 p-1 rounded-full border border-white/10 backdrop-blur-md">
-          {navLinks.map((item) => {
-            const isActive = activeService === item.type;
+        {/* Desktop Navigation Links - Spacious, Centered & Clean */}
+        <nav className="hidden lg:flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/10 backdrop-blur-md">
+          {visibleMenus.map((item) => {
+            const isActive = activeService === item.key;
             return (
               <button
-                key={item.type}
-                onClick={() => handleNavClick(item.type)}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                key={item.id}
+                onClick={() => handleNavClick(item.targetSectionId, item.key)}
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                   isActive
                     ? 'bg-amber-400 text-slate-950 font-bold shadow-md shadow-amber-400/20'
                     : 'text-sky-100 hover:text-white hover:bg-white/10'
                 }`}
               >
-                {item.icon}
-                <span>{item.label}</span>
+                {getMenuIcon(item.icon)}
+                <span>{item.labelEn}</span>
+                {item.badge && (
+                  <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
+                    isActive ? 'bg-slate-950 text-amber-300' : 'bg-amber-400 text-slate-950'
+                  }`}>
+                    {item.badge}
+                  </span>
+                )}
               </button>
             );
           })}
         </nav>
 
-        {/* Right Action Icons: Phone, Currency Selector, Bookings */}
+        {/* Right Section: Currency Switcher & Mobile Menu Trigger */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Direct WhatsApp / Phone Contact */}
-          <a
-            href="tel:+97714542890"
-            className="hidden xl:flex items-center gap-2 text-xs font-medium text-sky-200 hover:text-amber-300 transition-colors bg-white/5 px-3 py-1.5 rounded-lg border border-white/10"
-            title="Call Kathmandu Head Office"
-          >
-            <Phone className="w-3.5 h-3.5 text-amber-400" />
-            <span className="font-mono">+977 1 4542890</span>
-          </a>
-
           {/* Currency Switcher */}
           <div className="relative">
             <button
               onClick={() => setCurrencyDropdownOpen(!currencyDropdownOpen)}
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-white bg-white/10 border border-white/20 rounded-lg hover:border-amber-400 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-white/10 border border-white/20 rounded-lg hover:border-amber-400 transition-colors cursor-pointer"
               title="Change Currency"
             >
-              <span className="text-amber-300 font-mono">
+              <span className="text-amber-300 font-mono font-bold">
                 {currentCurrency === 'USD' ? '$' : currentCurrency === 'NPR' ? 'Rs' : currentCurrency === 'EUR' ? '€' : '£'}
               </span>
               <span>{currentCurrency}</span>
-              <ChevronDown className="w-3 h-3 text-sky-200" />
+              <ChevronDown className="w-3.5 h-3.5 text-sky-200" />
             </button>
 
             {currencyDropdownOpen && (
@@ -175,20 +184,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
           </div>
 
-          {/* Bookings / Vouchers Button */}
-          <button
-            onClick={onOpenBookings}
-            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-bold text-slate-950 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 rounded-lg hover:from-amber-300 hover:to-amber-400 shadow-md shadow-amber-400/20 transition-all cursor-pointer whitespace-nowrap active:scale-95"
-          >
-            <Briefcase className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">My Bookings</span>
-            {bookingCount > 0 && (
-              <span className="bg-slate-950 text-amber-300 text-[10px] sm:text-[11px] font-black px-1.5 py-0.2 rounded-full">
-                {bookingCount}
-              </span>
-            )}
-          </button>
-
           {/* Mobile hamburger button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -203,24 +198,27 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
         <div className="lg:hidden border-t border-white/10 bg-[#0c2a50] px-4 pt-3 pb-5 space-y-2 animate-fadeIn">
-          {navLinks.map((item) => (
+          {visibleMenus.map((item) => (
             <button
-              key={item.type}
-              onClick={() => handleNavClick(item.type)}
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
-                activeService === item.type
+              key={item.id}
+              onClick={() => handleNavClick(item.targetSectionId, item.key)}
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+                activeService === item.key
                   ? 'bg-amber-400 text-slate-950 font-bold shadow'
                   : 'text-sky-100 hover:bg-white/10 hover:text-white'
               }`}
             >
-              {item.icon}
-              <span>{item.label}</span>
+              <div className="flex items-center gap-3">
+                {getMenuIcon(item.icon)}
+                <span>{item.labelEn}</span>
+              </div>
+              {item.badge && (
+                <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-slate-950 text-amber-300">
+                  {item.badge}
+                </span>
+              )}
             </button>
           ))}
-          <div className="pt-2 border-t border-white/10 flex items-center justify-between text-xs text-sky-200 px-3">
-            <span>Kathmandu Head Office</span>
-            <span className="text-amber-300 font-mono font-semibold">+977 1 4542890</span>
-          </div>
         </div>
       )}
     </header>

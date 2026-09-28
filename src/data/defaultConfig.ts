@@ -1,0 +1,142 @@
+import { SiteConfig } from '../types/admin';
+
+export const BACKGROUND_PRESETS = [
+  {
+    id: 'himalayan-flight',
+    title: 'Himalayan Mountain Scenic Flight (Default)',
+    subtitle: 'Himalayan Peaks over Nepal Flight',
+    url: '/images/hero_himalayas_travel_1790502254393.jpg',
+    thumbnail: '/images/hero_himalayas_travel_1790502254393.jpg',
+  },
+  {
+    id: 'annapurna-dawn',
+    title: 'Annapurna Golden Dawn Panorama',
+    subtitle: 'Golden Morning Light on the Annapurna Range',
+    url: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=1920&q=80',
+    thumbnail: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=400&q=80',
+  },
+  {
+    id: 'everest-valley',
+    title: 'Everest Khumbu Majestic Ridge',
+    subtitle: 'Towering Glaciers and Khumbu Summits',
+    url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1920&q=80',
+    thumbnail: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80',
+  },
+  {
+    id: 'pokhara-lake',
+    title: 'Pokhara Phewa Lake & Machapuchare',
+    subtitle: 'Reflections of Fishtail Mountain Sanctuary',
+    url: 'https://images.unsplash.com/photo-1589802829985-817e51171b92?auto=format&fit=crop&w=1920&q=80',
+    thumbnail: 'https://images.unsplash.com/photo-1589802829985-817e51171b92?auto=format&fit=crop&w=400&q=80',
+  },
+  {
+    id: 'luxury-resort',
+    title: 'Boutique Himalayan Mountain Resort',
+    subtitle: 'Luxury Terrace Stays Facing the Peaks',
+    url: '/images/hotel_nepal_resort_1790502269336.jpg',
+    thumbnail: '/images/hotel_nepal_resort_1790502269336.jpg',
+  },
+];
+
+export const DEFAULT_SITE_CONFIG: SiteConfig = {
+  background: {
+    imageUrl: '/images/hero_himalayas_travel_1790502254393.jpg',
+    presetId: 'himalayan-flight',
+    opacity: 92, // High visibility so mountain panorama is clear and stunning
+    brightness: 102,
+    blur: 0,
+    overlayTheme: 'clear', // Clear overlay so photo is directly visible
+    fixedOnScroll: true, // Fixed background across full page scroll
+  },
+  menus: [
+    {
+      id: 'menu-flights',
+      key: 'flights',
+      labelEn: 'Flights & Scenic Tours',
+      sublabel: 'Everest Window Guaranteed',
+      icon: 'Plane',
+      badge: 'POPULAR',
+      visible: true,
+      targetSectionId: 'aviation',
+      order: 1,
+    },
+    {
+      id: 'menu-hotels',
+      key: 'hotels',
+      labelEn: 'Hotels & Lodges',
+      sublabel: '5-Star Himalayan Sanctuaries',
+      icon: 'Building2',
+      visible: true,
+      targetSectionId: 'sanctuaries',
+      order: 2,
+    },
+    {
+      id: 'menu-vehicles',
+      key: 'vehicles',
+      labelEn: '4WD Vehicles',
+      sublabel: 'Mahindra Scorpio Fleet',
+      icon: 'Car',
+      visible: true,
+      targetSectionId: 'fleet',
+      order: 3,
+    },
+    {
+      id: 'menu-promotions',
+      key: 'promotions',
+      labelEn: 'Combo Packages',
+      sublabel: 'Curated Mountain Odysseys',
+      icon: 'Sparkles',
+      badge: 'SPECIAL DEAL',
+      visible: true,
+      targetSectionId: 'odysseys',
+      order: 4,
+    },
+    {
+      id: 'menu-about',
+      key: 'about',
+      labelEn: 'About & License',
+      sublabel: 'Govt Regd No. 19842',
+      icon: 'Building',
+      visible: true,
+      targetSectionId: 'about',
+      order: 5,
+    },
+  ],
+  popup: {
+    isActive: false, // Turn OFF initially as explicitly requested!
+    type: 'template',
+    template: {
+      badge: '2026 AUTUMN PEAK PROMOTION',
+      title: 'Everest Mountain Scenic Flight Early Bird Special',
+      eventPeriod: 'Oct 01, 2026 – Nov 30, 2026 (Golden Peak Season)',
+      departureTime: 'Daily Morning Departures 06:30 / 07:15 (Kathmandu TIA)',
+      productName: 'Everest Scenic Window-Guaranteed Flight (1-Hour Return)',
+      specialOffer: 'Early Bird 25% Instant Savings ($198 Special) + Complimentary Hotel Transfers in Kathmandu',
+      description: '100% Guaranteed Window Seat for all passengers! Soar over Mount Everest (8,848m) and the iconic Himalayan 14-peaks panorama in certified mountain aircraft. Includes official flight certificate.',
+      buttonText: 'Book Everest Scenic Flight Now',
+      targetSectionId: 'aviation',
+      disclaimer: '* 100% Free Date Change or Full Refund in the event of mountain weather delays',
+    },
+    imagePopup: {
+      imageUrl: '/images/hero_himalayas_travel_1790502254393.jpg',
+      imageAlt: 'Nepal Premium Tour Exclusive Promotional Banner',
+      linkUrl: '#aviation',
+      openInNewTab: false,
+    },
+    showOncePerDay: true,
+  },
+  company: {
+    nameEn: 'Premium Travel & Tours Pvt. Ltd.',
+    tagline: 'Nepal’s Premier Luxury Flight, Hotel & 4WD Concierge',
+    phone: '+977 1 4542890',
+    email: 'contact@premiumtravelnepal.com',
+    whatsapp: '+977 98510 98420',
+    officeAddress: 'Level 4, Heritage Plaza, Durbar Marg, Kathmandu, Nepal',
+    registrationNumber: '19842/075/076',
+    tourismLicense: 'DOT-NEPAL/TRV-4120',
+    vatNumber: 'PAN/VAT: 606821945',
+    tickerNotice: '⚡ 2026 Season: Daily 14 Flights KTM ⇄ PKR Operating On Time · Everest Mountain Flights Window Guaranteed!',
+    tickerActive: true,
+  },
+  adminPin: 'admin1234',
+};

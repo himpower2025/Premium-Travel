@@ -52,15 +52,15 @@ export const FlywardSpatialJourney: React.FC<FlywardSpatialJourneyProps> = ({
   const currentVehicle = VEHICLES_DATA[selectedVehicleIndex] || VEHICLES_DATA[0];
 
   return (
-    <div className="relative bg-[#f4f8fc] text-slate-900 overflow-hidden">
+    <div className="relative bg-transparent text-slate-900 overflow-hidden">
       {/* Background Architectural Grid Lines */}
       <div className="absolute inset-0 pointer-events-none opacity-30 bg-[linear-gradient(to_right,#cbd5e1_1px,transparent_1px),linear-gradient(to_bottom,#cbd5e1_1px,transparent_1px)] bg-[size:3rem_3rem] sm:bg-[size:4rem_4rem]" />
 
       {/* ========================================================================= */}
       {/* SECTION 01: FLIGHTS & MOUNTAIN SCENIC TOURS                               */}
       {/* ========================================================================= */}
-      <section id="aviation" className="relative py-14 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 border-b border-slate-200/80 bg-gradient-to-b from-[#e8f2fc] via-white to-[#edf5fc]">
-        <div className="max-w-7xl mx-auto">
+      <section id="aviation" className="relative py-14 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-10 xl:px-14 border-b border-slate-200/60 bg-gradient-to-b from-white/65 via-white/55 to-white/65 backdrop-blur-sm">
+        <div className="max-w-[1680px] w-full mx-auto">
           {/* Section Header */}
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-12 gap-4 sm:gap-6">
             <div>
@@ -88,10 +88,10 @@ export const FlywardSpatialJourney: React.FC<FlywardSpatialJourneyProps> = ({
           </div>
 
           {/* Spatial Split-Coordinate Stage */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 xl:gap-10 items-center">
             
             {/* Left Column: Route Selector & Flight Details */}
-            <div className="lg:col-span-5 space-y-4 sm:space-y-5">
+            <div className="lg:col-span-5 xl:col-span-4 space-y-4 sm:space-y-5">
               <div className="space-y-2">
                 <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
                   Select Your Route:
@@ -167,7 +167,7 @@ export const FlywardSpatialJourney: React.FC<FlywardSpatialJourneyProps> = ({
             </div>
 
             {/* Right Column: Interactive Flight Visual Card */}
-            <div className="lg:col-span-7">
+            <div className="lg:col-span-7 xl:col-span-8">
               <TiltCard
                 maxTilt={4}
                 scale={1.01}
@@ -249,8 +249,8 @@ export const FlywardSpatialJourney: React.FC<FlywardSpatialJourneyProps> = ({
       {/* ========================================================================= */}
       {/* SECTION 02: HOTELS & RESORTS                                              */}
       {/* ========================================================================= */}
-      <section id="sanctuaries" className="relative py-14 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 border-b border-slate-200/80 bg-gradient-to-b from-[#f8f5ee] via-white to-[#eef4f8]">
-        <div className="max-w-7xl mx-auto">
+      <section id="sanctuaries" className="relative py-14 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-10 xl:px-14 border-b border-slate-200/60 bg-gradient-to-b from-white/65 via-white/55 to-white/65 backdrop-blur-sm">
+        <div className="max-w-[1680px] w-full mx-auto">
           {/* Section Header */}
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-12 gap-4 sm:gap-6">
             <div>
@@ -278,16 +278,16 @@ export const FlywardSpatialJourney: React.FC<FlywardSpatialJourneyProps> = ({
           </div>
 
           {/* Spatial Split-Coordinate Stage */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 xl:gap-10 items-center">
             
             {/* Left Column: Visual Hotel Showcase */}
-            <div className="lg:col-span-7">
+            <div className="lg:col-span-7 xl:col-span-7">
               <TiltCard
                 maxTilt={4}
                 scale={1.01}
                 className="relative rounded-3xl overflow-hidden border border-slate-200/90 shadow-xl bg-white group"
               >
-                <div className="relative h-[280px] sm:h-[380px] md:h-[420px] w-full overflow-hidden">
+                <div className="relative h-[280px] sm:h-[380px] md:h-[440px] xl:h-[500px] w-full overflow-hidden">
                   <img
                     src={currentHotel.image}
                     alt={currentHotel.name}
@@ -427,8 +427,8 @@ export const FlywardSpatialJourney: React.FC<FlywardSpatialJourneyProps> = ({
       {/* ========================================================================= */}
       {/* SECTION 03: 4WD FLEET & EXPEDITION VEHICLES                               */}
       {/* ========================================================================= */}
-      <section id="fleet" className="relative py-14 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 border-b border-slate-200/80 bg-gradient-to-b from-[#eef7f4] via-white to-[#edf4f8]">
-        <div className="max-w-7xl mx-auto">
+      <section id="fleet" className="relative py-14 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-10 xl:px-14 border-b border-slate-200/60 bg-gradient-to-b from-white/65 via-white/55 to-white/65 backdrop-blur-sm">
+        <div className="max-w-[1680px] w-full mx-auto">
           {/* Section Header */}
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-12 gap-4 sm:gap-6">
             <div>
@@ -456,10 +456,10 @@ export const FlywardSpatialJourney: React.FC<FlywardSpatialJourneyProps> = ({
           </div>
 
           {/* Spatial Split-Coordinate Stage */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 xl:gap-10 items-center">
             
             {/* Left Column: Vehicle Choice & Days */}
-            <div className="lg:col-span-5 space-y-4 sm:space-y-5">
+            <div className="lg:col-span-5 xl:col-span-4 space-y-4 sm:space-y-5">
               <div className="space-y-2">
                 <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
                   Select Vehicle:
@@ -528,13 +528,13 @@ export const FlywardSpatialJourney: React.FC<FlywardSpatialJourneyProps> = ({
             </div>
 
             {/* Right Column: 3D Vehicle Showcase */}
-            <div className="lg:col-span-7">
+            <div className="lg:col-span-7 xl:col-span-8">
               <TiltCard
                 maxTilt={4}
                 scale={1.01}
                 className="relative rounded-3xl overflow-hidden border border-slate-200/90 shadow-xl bg-white group"
               >
-                <div className="relative h-[280px] sm:h-[380px] md:h-[420px] w-full overflow-hidden">
+                <div className="relative h-[280px] sm:h-[380px] md:h-[440px] xl:h-[500px] w-full overflow-hidden">
                   <img
                     src={currentVehicle.image}
                     alt={currentVehicle.name}
@@ -609,8 +609,8 @@ export const FlywardSpatialJourney: React.FC<FlywardSpatialJourneyProps> = ({
       {/* ========================================================================= */}
       {/* SECTION 04: ALL-IN-ONE PACKAGES (Combos)                                 */}
       {/* ========================================================================= */}
-      <section id="odysseys" className="relative py-14 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 border-b border-slate-200/80 bg-gradient-to-b from-[#fcf7ee] via-white to-[#eef5fc]">
-        <div className="max-w-7xl mx-auto">
+      <section id="odysseys" className="relative py-14 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-10 xl:px-14 border-b border-slate-200/60 bg-gradient-to-b from-white/65 via-white/55 to-white/65 backdrop-blur-sm">
+        <div className="max-w-[1680px] w-full mx-auto">
           {/* Section Header */}
           <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-100 border border-amber-300 text-xs font-bold text-amber-900 uppercase mb-3">
@@ -626,7 +626,7 @@ export const FlywardSpatialJourney: React.FC<FlywardSpatialJourneyProps> = ({
           </div>
 
           {/* Combo Packages Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-8 xl:gap-10">
             {COMBO_PACKAGES.map((pkg) => (
               <TiltCard
                 key={pkg.id}
@@ -635,7 +635,7 @@ export const FlywardSpatialJourney: React.FC<FlywardSpatialJourneyProps> = ({
                 className="bg-white rounded-3xl border border-slate-200/90 overflow-hidden shadow-md hover:shadow-xl flex flex-col justify-between group hover:border-blue-400 transition-all"
               >
                 {/* Image & Header */}
-                <div className="relative h-52 sm:h-60 w-full overflow-hidden bg-slate-100">
+                <div className="relative h-56 sm:h-64 xl:h-72 w-full overflow-hidden bg-slate-100">
                   <img
                     src={pkg.image}
                     alt={pkg.title}
