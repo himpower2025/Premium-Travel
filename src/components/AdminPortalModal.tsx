@@ -23,14 +23,18 @@ import {
   ArrowDown,
   Sparkles,
   Layers,
-  Save,
   Info,
-  ExternalLink,
   Sliders,
   CheckCircle2,
   Calendar,
   Clock,
-  Plane
+  Plane,
+  Building2,
+  Car,
+  Compass,
+  Edit3,
+  MapPin,
+  Award
 } from 'lucide-react';
 
 export const AdminPortalModal: React.FC = () => {
@@ -49,12 +53,13 @@ export const AdminPortalModal: React.FC = () => {
     resetDailyDismissal,
   } = useSiteConfig();
 
-  // Tabs: 'background' | 'menus' | 'popup' | 'company' | 'security'
-  const [activeTab, setActiveTab] = useState<'background' | 'menus' | 'popup' | 'company' | 'security'>('background');
+  // Active Tab: 'menus' | 'background' | 'popup' | 'company' | 'security'
+  const [activeTab, setActiveTab] = useState<'menus' | 'background' | 'popup' | 'company' | 'security'>('menus');
 
   // Login form state
   const [inputPin, setInputPin] = useState('');
   const [loginError, setLoginError] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Security tab state
   const [newPin, setNewPin] = useState('');
@@ -67,21 +72,62 @@ export const AdminPortalModal: React.FC = () => {
   // Toast / notification state
   const [saveToast, setSaveToast] = useState(false);
 
+  // Menu editing dialog state
+  const [editingMenu, setEditingMenu] = useState<MenuItemConfig | null>(null);
+  const [isAddingNewMenu, setIsAddingNewMenu] = useState(false);
+
   const triggerToast = () => {
     setSaveToast(true);
-    setTimeout(() => setSaveToast(false), 2000);
+    setTimeout(() => setSaveToast(false), 2200);
   };
 
   if (!isAdminOpen) return null;
 
-  // 1. Password Verification Screen
+  // Available icon options for menus
+  const iconOptions = [
+    { name: 'Plane', label: 'Flights & Air', icon: <Plane className="w-4 h-4" /> },
+    { name: 'Building2', label: 'Hotels & Resorts', icon: <Building2 className="w-4 h-4" /> },
+    { name: 'Car', label: '4WD Vehicles', icon: <Car className="w-4 h-4" /> },
+    { name: 'Sparkles', label: 'Packages & Deals', icon: <Sparkles className="w-4 h-4" /> },
+    { name: 'Building', label: 'About Agency', icon: <Building className="w-4 h-4" /> },
+    { name: 'Compass', label: 'Expeditions', icon: <Compass className="w-4 h-4" /> },
+    { name: 'MapPin', label: 'Destinations', icon: <MapPin className="w-4 h-4" /> },
+    { name: 'Award', label: 'Licenses & Credentials', icon: <Award className="w-4 h-4" /> },
+  ];
+
+  const targetSectionOptions = [
+    { id: 'aviation', name: '01. Domestic Flights & Mountain Scenic Tours (#aviation)' },
+    { id: 'sanctuaries', name: '02. 5-Star Resorts & Himalayan Lodges (#sanctuaries)' },
+    { id: 'fleet', name: '03. 4WD Expedition Vehicles & Licensed Drivers (#fleet)' },
+    { id: 'odysseys', name: '04. All-in-One Curated Combo Packages (#odysseys)' },
+    { id: 'about', name: '05. Company Profile & Government Licenses (#about)' },
+  ];
+
+  const renderIconByName = (name: string) => {
+    switch (name) {
+      case 'Plane': return <Plane className="w-4 h-4" />;
+      case 'Building2': return <Building2 className="w-4 h-4" />;
+      case 'Car': return <Car className="w-4 h-4" />;
+      case 'Sparkles': return <Sparkles className="w-4 h-4 text-amber-500" />;
+      case 'Building': return <Building className="w-4 h-4" />;
+      case 'Compass': return <Compass className="w-4 h-4" />;
+      case 'MapPin': return <MapPin className="w-4 h-4" />;
+      case 'Award': return <Award className="w-4 h-4" />;
+      default: return <Compass className="w-4 h-4" />;
+    }
+  };
+
+  // ---------------------------------------------------------------------------
+  // 1. Password Verification Screen (Admin Sign-In)
+  // ---------------------------------------------------------------------------
   if (!isAdminAuthenticated) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn">
-        <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 sm:p-8 border border-slate-200">
+        <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 sm:p-8 border border-slate-200">
           <button
             onClick={() => setIsAdminOpen(false)}
-            className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100 transition-colors"
+            className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+            title="Close"
           >
             <X className="w-5 h-5" />
           </button>
@@ -91,11 +137,11 @@ export const AdminPortalModal: React.FC = () => {
               <Lock className="w-7 h-7" />
             </div>
 
-            <h2 className="font-cinzel text-xl font-bold text-slate-900">
-              Admin Portal Authentication
+            <h2 className="text-xl font-bold text-slate-900">
+              Administrator Sign-In
             </h2>
-            <p className="text-xs text-slate-500 mt-1 max-w-xs">
-              Please enter your administrator password to access the website management portal.
+            <p className="text-xs text-slate-500 mt-1 max-w-xs leading-relaxed">
+              Please enter your administrator PIN / password to access the website management portal.
             </p>
           </div>
 
@@ -112,36 +158,47 @@ export const AdminPortalModal: React.FC = () => {
             className="mt-6 space-y-4"
           >
             <div>
-              <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block mb-1">
+              <label className="text-xs font-bold text-slate-700 block mb-1">
                 Administrator Password (PIN / Password)
               </label>
-              <input
-                type="password"
-                value={inputPin}
-                onChange={(e) => {
-                  setInputPin(e.target.value);
-                  setLoginError(false);
-                }}
-                placeholder="Enter password..."
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-sm font-mono tracking-wider outline-none transition-all"
-                autoFocus
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={inputPin}
+                  onChange={(e) => {
+                    setInputPin(e.target.value);
+                    setLoginError(false);
+                  }}
+                  placeholder="Enter administrator password..."
+                  className="w-full pl-4 pr-11 py-2.5 rounded-xl border border-slate-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-sm font-mono tracking-wider outline-none transition-all"
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer p-1"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+
               {loginError && (
-                <p className="text-xs text-rose-600 font-semibold mt-1">
-                  Incorrect password. Please verify and try again.
+                <p className="text-xs text-rose-600 font-semibold mt-1.5 flex items-center gap-1">
+                  <X className="w-3.5 h-3.5" />
+                  <span>Incorrect password. Please verify and try again.</span>
                 </p>
               )}
             </div>
 
             {/* Quick Demo Hint */}
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-[11px] text-slate-600 flex items-center justify-between">
-              <span>Default PIN: <strong className="text-amber-600 font-mono font-bold">{siteConfig.adminPin || 'admin1234'}</strong></span>
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-center justify-between">
+              <span>Default PIN: <strong className="text-amber-700 font-mono font-bold">{siteConfig.adminPin || 'admin1234'}</strong></span>
               <button
                 type="button"
                 onClick={() => setInputPin(siteConfig.adminPin || 'admin1234')}
-                className="text-blue-600 hover:text-blue-800 font-bold underline cursor-pointer"
+                className="text-blue-600 hover:text-blue-800 font-bold underline cursor-pointer text-[11px]"
               >
-                Fill Demo PIN
+                Auto-fill Default PIN
               </button>
             </div>
 
@@ -149,16 +206,16 @@ export const AdminPortalModal: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsAdminOpen(false)}
-                className="w-1/2 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+                className="w-1/2 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
               >
-                Close
+                Cancel
               </button>
               <button
                 type="submit"
                 className="w-1/2 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-500 text-slate-950 text-xs font-bold shadow-md shadow-amber-400/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <Unlock className="w-4 h-4" />
-                <span>Admin Sign In</span>
+                <span>Sign In to Admin</span>
               </button>
             </div>
           </form>
@@ -167,28 +224,33 @@ export const AdminPortalModal: React.FC = () => {
     );
   }
 
-  // 2. Full Admin Portal Dashboard Screen
+  // ---------------------------------------------------------------------------
+  // 2. Full Admin Portal Dashboard Screen (100% English & Reader-Friendly)
+  // ---------------------------------------------------------------------------
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn overflow-hidden">
-      <div className="relative w-full max-w-5xl h-[92vh] max-h-[850px] bg-white rounded-3xl shadow-2xl flex flex-col border border-slate-200 overflow-hidden">
+      <div className="relative w-full max-w-6xl h-[92vh] max-h-[880px] bg-white rounded-2xl shadow-2xl flex flex-col border border-slate-200 overflow-hidden text-slate-900">
         
-        {/* Top Header Bar */}
-        <div className="px-5 py-3.5 bg-gradient-to-r from-[#0c2a50] to-[#12396b] text-white flex items-center justify-between shrink-0 border-b border-blue-900/50">
+        {/* ========================================================================= */}
+        {/* TOP BAR: Clean, Professional Header                                       */}
+        {/* ========================================================================= */}
+        <div className="px-5 py-3.5 bg-[#0c2340] text-white flex items-center justify-between shrink-0 border-b border-blue-900/40">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold shadow-md">
+            <div className="w-9 h-9 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold shadow-sm">
               <Settings className="w-5 h-5" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="font-cinzel text-base sm:text-lg font-bold tracking-tight text-white">
-                  Website Administration & Control Portal
+              <div className="flex items-center gap-2.5">
+                <h2 className="text-base sm:text-lg font-bold tracking-tight text-white">
+                  Flyward Administration Center
                 </h2>
-                <span className="bg-emerald-500 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
-                  LIVE SYNC ACTIVE
+                <span className="text-[11px] font-semibold text-emerald-300 bg-emerald-950/70 border border-emerald-500/40 px-2 py-0.5 rounded-md flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Live Auto-Save Enabled
                 </span>
               </div>
               <p className="text-[11px] text-sky-200">
-                Persistent Background Image / Navigation Menus / Dual Popup Modes / Agency Details
+                Manage navigation menus, persistent backgrounds, event popups, and official credentials in real time.
               </p>
             </div>
           </div>
@@ -199,16 +261,16 @@ export const AdminPortalModal: React.FC = () => {
                 exportConfigJson();
                 triggerToast();
               }}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold text-sky-100 transition-colors cursor-pointer"
-              title="Download current configuration as JSON backup"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-medium text-sky-100 transition-colors cursor-pointer"
+              title="Download configuration backup as JSON file"
             >
-              <Download className="w-3.5 h-3.5" />
-              <span>Backup JSON</span>
+              <Download className="w-3.5 h-3.5 text-amber-300" />
+              <span>Backup Data (.json)</span>
             </button>
 
             <button
               onClick={logoutAdmin}
-              className="px-3 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 text-xs font-semibold transition-colors cursor-pointer"
+              className="px-3 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 text-xs font-medium transition-colors cursor-pointer"
             >
               Sign Out
             </button>
@@ -216,37 +278,42 @@ export const AdminPortalModal: React.FC = () => {
             <button
               onClick={() => setIsAdminOpen(false)}
               className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
-              title="Close Admin Portal"
+              title="Close Portal"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
         </div>
 
-        {/* Tab Navigation Navigation Strip */}
-        <div className="flex items-center gap-1 px-4 sm:px-6 pt-3 pb-2 bg-slate-50 border-b border-slate-200 overflow-x-auto shrink-0 select-none">
-          <button
-            onClick={() => setActiveTab('background')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-              activeTab === 'background'
-                ? 'bg-amber-400 text-slate-950 shadow-sm'
-                : 'text-slate-600 hover:bg-slate-200/70 hover:text-slate-900'
-            }`}
-          >
-            <ImageIcon className="w-4 h-4" />
-            <span>1. Background &amp; Scroll</span>
-          </button>
-
+        {/* ========================================================================= */}
+        {/* TAB NAVIGATION: Reader-friendly, clearly categorized in English            */}
+        {/* ========================================================================= */}
+        <div className="flex items-center gap-1 px-4 sm:px-6 pt-3 pb-2.5 bg-slate-100/80 border-b border-slate-200 overflow-x-auto shrink-0 select-none">
           <button
             onClick={() => setActiveTab('menus')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'menus'
                 ? 'bg-amber-400 text-slate-950 shadow-sm'
-                : 'text-slate-600 hover:bg-slate-200/70 hover:text-slate-900'
+                : 'text-slate-700 hover:bg-slate-200/80 hover:text-slate-900'
             }`}
           >
             <MenuIcon className="w-4 h-4" />
-            <span>2. Menus &amp; Navigation</span>
+            <span>1. Navigation Menus</span>
+            <span className="text-[11px] font-mono px-1.5 py-0.2 rounded-md bg-black/10">
+              {siteConfig.menus.filter((m) => m.visible).length} Active
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('background')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+              activeTab === 'background'
+                ? 'bg-amber-400 text-slate-950 shadow-sm'
+                : 'text-slate-700 hover:bg-slate-200/80 hover:text-slate-900'
+            }`}
+          >
+            <ImageIcon className="w-4 h-4" />
+            <span>2. Background &amp; Scroll</span>
           </button>
 
           <button
@@ -254,15 +321,17 @@ export const AdminPortalModal: React.FC = () => {
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer relative ${
               activeTab === 'popup'
                 ? 'bg-amber-400 text-slate-950 shadow-sm'
-                : 'text-slate-600 hover:bg-slate-200/70 hover:text-slate-900'
+                : 'text-slate-700 hover:bg-slate-200/80 hover:text-slate-900'
             }`}
           >
             <Bell className="w-4 h-4" />
             <span>3. Popups &amp; Promotions</span>
             {siteConfig.popup.isActive ? (
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded-md">
+                ON
+              </span>
             ) : (
-              <span className="text-[10px] text-slate-400 font-mono">(OFF)</span>
+              <span className="text-[10px] text-slate-500 font-mono">(OFF)</span>
             )}
           </button>
 
@@ -271,11 +340,11 @@ export const AdminPortalModal: React.FC = () => {
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'company'
                 ? 'bg-amber-400 text-slate-950 shadow-sm'
-                : 'text-slate-600 hover:bg-slate-200/70 hover:text-slate-900'
+                : 'text-slate-700 hover:bg-slate-200/80 hover:text-slate-900'
             }`}
           >
             <Building className="w-4 h-4" />
-            <span>4. Company &amp; Ticker</span>
+            <span>4. Company &amp; Live Ticker</span>
           </button>
 
           <button
@@ -283,20 +352,473 @@ export const AdminPortalModal: React.FC = () => {
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'security'
                 ? 'bg-amber-400 text-slate-950 shadow-sm'
-                : 'text-slate-600 hover:bg-slate-200/70 hover:text-slate-900'
+                : 'text-slate-700 hover:bg-slate-200/80 hover:text-slate-900'
             }`}
           >
             <Lock className="w-4 h-4" />
-            <span>5. Security &amp; Backup</span>
+            <span>5. Security &amp; Data Backup</span>
           </button>
         </div>
 
-        {/* Tab Body Content (Scrollable) */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-slate-50/50 space-y-6">
+        {/* ========================================================================= */}
+        {/* TAB BODY (Scrollable Container)                                           */}
+        {/* ========================================================================= */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-slate-50/70 space-y-6">
 
-          {/* ========================================================================= */}
-          {/* TAB 1: BACKGROUND & SCROLL MANAGEMENT                                     */}
-          {/* ========================================================================= */}
+          {/* ======================================================================= */}
+          {/* TAB 1: NAVIGATION MENUS (Intuitive, Clean, Reader-Friendly)               */}
+          {/* ======================================================================= */}
+          {activeTab === 'menus' && (
+            <div className="space-y-6 max-w-5xl mx-auto">
+              
+              {/* 1. Header Live Preview: Instant Visual Feedback */}
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-3 border-b border-slate-100 gap-2">
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                      <Eye className="w-4 h-4 text-amber-500" />
+                      <span>Live Website Header Navigation Preview</span>
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Any changes made to menu ordering, labels, badges, or visibility below are instantly simulated here.
+                    </p>
+                  </div>
+                  <span className="text-[11px] font-medium text-slate-500 self-start sm:self-auto bg-slate-100 px-2.5 py-1 rounded-md">
+                    Visible Items: <strong className="text-blue-900">{siteConfig.menus.filter((m) => m.visible).length} Active</strong>
+                  </span>
+                </div>
+
+                {/* Simulated Header Bar */}
+                <div className="bg-[#0c2a50] rounded-xl p-3 sm:p-4 text-white flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-inner">
+                  <div className="flex items-center gap-2 text-xs font-bold text-sky-100">
+                    <span className="w-2 h-2 rounded-full bg-amber-400" />
+                    <span>FLYWARD NEPAL</span>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    {siteConfig.menus.filter((m) => m.visible).length === 0 ? (
+                      <span className="text-xs text-amber-300 italic py-1">
+                        No menus are currently visible. Turn on the "Visible" toggle for at least one item below.
+                      </span>
+                    ) : (
+                      siteConfig.menus
+                        .slice()
+                        .sort((a, b) => a.order - b.order)
+                        .filter((m) => m.visible)
+                        .map((menu, idx) => (
+                          <div
+                            key={menu.id}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${
+                              idx === 0
+                                ? 'bg-amber-400 text-slate-950 font-bold shadow-xs'
+                                : 'bg-white/10 text-sky-100 border border-white/10'
+                            }`}
+                          >
+                            {renderIconByName(menu.icon)}
+                            <span>{menu.labelEn}</span>
+                            {menu.badge && (
+                              <span className="text-[9px] font-black px-1.5 py-0.2 rounded-full bg-slate-950 text-amber-300">
+                                {menu.badge}
+                              </span>
+                            )}
+                          </div>
+                        ))
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Menu Table List Header & Quick Actions */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <span>Navigation Items &amp; Order Management</span>
+                    <span className="text-xs font-normal text-slate-500">
+                      (Organized list: use [Move Up/Down] to reorder, [Edit] to modify details)
+                    </span>
+                  </h3>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      const newId = `menu-custom-${Date.now()}`;
+                      const newMenu: MenuItemConfig = {
+                        id: newId,
+                        key: `custom_${Date.now()}`,
+                        labelEn: 'New Tour Experience',
+                        sublabel: 'Curated Adventure Booking',
+                        icon: 'Compass',
+                        badge: 'NEW',
+                        visible: true,
+                        targetSectionId: 'aviation',
+                        order: siteConfig.menus.length + 1,
+                      };
+                      setEditingMenu(newMenu);
+                      setIsAddingNewMenu(true);
+                    }}
+                    className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Add New Menu Item</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      if (confirm('Are you sure you want to reset all menus back to default 5 items (Flights, Hotels, Vehicles, Packages, About)?')) {
+                        resetToDefault();
+                        triggerToast();
+                      }
+                    }}
+                    className="px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-medium flex items-center gap-1 transition-colors cursor-pointer"
+                    title="Reset to factory default menus"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Reset Defaults</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 3. Intuitive Menu Table / Card List */}
+              <div className="space-y-2.5">
+                {siteConfig.menus
+                  .slice()
+                  .sort((a, b) => a.order - b.order)
+                  .map((menu, idx, arr) => (
+                    <div
+                      key={menu.id}
+                      className={`p-3.5 sm:p-4 rounded-xl border transition-all ${
+                        menu.visible
+                          ? 'bg-white border-slate-200/90 shadow-xs hover:border-amber-400'
+                          : 'bg-slate-100/70 border-slate-200 opacity-65'
+                      }`}
+                    >
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                        
+                        {/* Left: Sequence + Icon + Labels */}
+                        <div className="flex items-center gap-3">
+                          {/* Order Number & Up/Down Arrows */}
+                          <div className="flex items-center gap-1">
+                            <span className="w-7 h-7 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold flex items-center justify-center font-mono">
+                              #{idx + 1}
+                            </span>
+                            <div className="flex flex-col gap-0.5">
+                              <button
+                                disabled={idx === 0}
+                                onClick={() => {
+                                  const sorted = [...siteConfig.menus].sort((a, b) => a.order - b.order);
+                                  if (idx > 0) {
+                                    const curr = sorted[idx];
+                                    const prev = sorted[idx - 1];
+                                    const temp = curr.order;
+                                    curr.order = prev.order;
+                                    prev.order = temp;
+                                    updateConfig((cfg) => ({ ...cfg, menus: sorted }));
+                                    triggerToast();
+                                  }
+                                }}
+                                className="p-1 rounded hover:bg-slate-200 disabled:opacity-20 disabled:pointer-events-none text-slate-600 transition-colors cursor-pointer"
+                                title="Move Up One Position"
+                              >
+                                <ArrowUp className="w-3 h-3" />
+                              </button>
+                              <button
+                                disabled={idx === arr.length - 1}
+                                onClick={() => {
+                                  const sorted = [...siteConfig.menus].sort((a, b) => a.order - b.order);
+                                  if (idx < arr.length - 1) {
+                                    const curr = sorted[idx];
+                                    const next = sorted[idx + 1];
+                                    const temp = curr.order;
+                                    curr.order = next.order;
+                                    next.order = temp;
+                                    updateConfig((cfg) => ({ ...cfg, menus: sorted }));
+                                    triggerToast();
+                                  }
+                                }}
+                                className="p-1 rounded hover:bg-slate-200 disabled:opacity-20 disabled:pointer-events-none text-slate-600 transition-colors cursor-pointer"
+                                title="Move Down One Position"
+                              >
+                                <ArrowDown className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Menu Icon Box */}
+                          <div className="w-9 h-9 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center shrink-0">
+                            {renderIconByName(menu.icon)}
+                          </div>
+
+                          {/* Titles & Destination Tag */}
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-sm font-bold text-slate-900">
+                                {menu.labelEn}
+                              </span>
+                              {menu.sublabel && (
+                                <span className="text-xs text-slate-500 font-normal">
+                                  ({menu.sublabel})
+                                </span>
+                              )}
+                              {menu.badge && (
+                                <span className="bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">
+                                  {menu.badge}
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-0.5">
+                              <span>Destination:</span>
+                              <span className="font-mono text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200/60 font-semibold">
+                                #{menu.targetSectionId}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Right: Toggle Switch & Edit / Delete Buttons */}
+                        <div className="flex items-center gap-3 self-end md:self-auto shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 w-full md:w-auto justify-between md:justify-end">
+                          
+                          {/* Visibility Toggle Button */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              updateConfig((prev) => ({
+                                ...prev,
+                                menus: prev.menus.map((m) =>
+                                  m.id === menu.id ? { ...m, visible: !m.visible } : m
+                                ),
+                              }));
+                              triggerToast();
+                            }}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                              menu.visible
+                                ? 'bg-emerald-50 border-emerald-300 text-emerald-800 hover:bg-emerald-100'
+                                : 'bg-slate-200 border-slate-300 text-slate-600 hover:bg-slate-300'
+                            }`}
+                            title={menu.visible ? 'Click to hide menu' : 'Click to display menu'}
+                          >
+                            {menu.visible ? (
+                              <>
+                                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                <span>Visible (Active)</span>
+                              </>
+                            ) : (
+                              <>
+                                <EyeOff className="w-3.5 h-3.5 text-slate-500" />
+                                <span>Hidden (Off)</span>
+                              </>
+                            )}
+                          </button>
+
+                          {/* Edit Details Button */}
+                          <button
+                            onClick={() => {
+                              setEditingMenu({ ...menu });
+                              setIsAddingNewMenu(false);
+                            }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 text-xs font-bold transition-colors cursor-pointer"
+                            title="Edit menu label, subtitle, badge, and target destination"
+                          >
+                            <Edit3 className="w-3.5 h-3.5 text-slate-600" />
+                            <span>Edit</span>
+                          </button>
+
+                          {/* Delete Button (if > 1 menu) */}
+                          {siteConfig.menus.length > 1 && (
+                            <button
+                              onClick={() => {
+                                if (confirm(`Are you sure you want to delete the menu item '${menu.labelEn}'?`)) {
+                                  updateConfig((prev) => ({
+                                    ...prev,
+                                    menus: prev.menus.filter((m) => m.id !== menu.id),
+                                  }));
+                                  triggerToast();
+                                }
+                              }}
+                              className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors cursor-pointer"
+                              title="Delete Menu"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+
+                      </div>
+                    </div>
+                  ))}
+              </div>
+
+              {/* 4. Menu Edit Modal Dialog (English & Reader-Friendly) */}
+              {editingMenu && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-fadeIn">
+                  <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl p-6 border border-slate-200 space-y-5 text-slate-900">
+                    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                      <div>
+                        <h4 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                          <Edit3 className="w-4 h-4 text-amber-500" />
+                          <span>{isAddingNewMenu ? 'Add New Navigation Item' : 'Edit Navigation Item'}</span>
+                        </h4>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          Configure primary title, descriptor subtitle, highlight badge, icon, and destination section.
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setEditingMenu(null)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <div className="space-y-4 text-xs">
+                      {/* Menu Label (English) */}
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          Primary Menu Label (English) <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={editingMenu.labelEn}
+                          onChange={(e) => setEditingMenu({ ...editingMenu, labelEn: e.target.value })}
+                          placeholder="e.g. Flights & Scenic Tours, Hotel Lodges"
+                          className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 text-sm font-medium outline-none"
+                        />
+                        <span className="text-[11px] text-slate-400 mt-0.5 block">Displayed as the main clickable label on the header navigation bar.</span>
+                      </div>
+
+                      {/* Sublabel / Descriptor */}
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          Subtitle / Descriptor (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          value={editingMenu.sublabel || ''}
+                          onChange={(e) => setEditingMenu({ ...editingMenu, sublabel: e.target.value })}
+                          placeholder="e.g. Everest Window Guaranteed, 5-Star Himalayan Sanctuaries"
+                          className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 text-sm outline-none"
+                        />
+                        <span className="text-[11px] text-slate-400 mt-0.5 block">Used in mobile drawers and secondary navigation descriptions.</span>
+                      </div>
+
+                      {/* Highlight Badge */}
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          Highlight Badge (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          value={editingMenu.badge || ''}
+                          onChange={(e) => setEditingMenu({ ...editingMenu, badge: e.target.value.toUpperCase() })}
+                          placeholder="e.g. HOT, NEW, POPULAR, SPECIAL DEAL (Leave empty for none)"
+                          className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 text-sm font-mono outline-none"
+                        />
+                      </div>
+
+                      {/* Target Section */}
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          Destination Page Section <span className="text-rose-500">*</span>
+                        </label>
+                        <select
+                          value={editingMenu.targetSectionId}
+                          onChange={(e) => setEditingMenu({ ...editingMenu, targetSectionId: e.target.value })}
+                          className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-amber-500 text-sm bg-white outline-none cursor-pointer"
+                        >
+                          {targetSectionOptions.map((opt) => (
+                            <option key={opt.id} value={opt.id}>
+                              {opt.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Icon Picker */}
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1.5">
+                          Select Menu Icon
+                        </label>
+                        <div className="grid grid-cols-4 gap-2">
+                          {iconOptions.map((opt) => (
+                            <button
+                              key={opt.name}
+                              type="button"
+                              onClick={() => setEditingMenu({ ...editingMenu, icon: opt.name })}
+                              className={`p-2 rounded-xl border text-center flex flex-col items-center gap-1 transition-all cursor-pointer ${
+                                editingMenu.icon === opt.name
+                                  ? 'bg-amber-100 border-amber-500 text-slate-950 font-bold ring-2 ring-amber-400/30'
+                                  : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                              }`}
+                            >
+                              {opt.icon}
+                              <span className="text-[10px] truncate max-w-full">{opt.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Visibility checkbox */}
+                      <label className="flex items-center gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={editingMenu.visible}
+                          onChange={(e) => setEditingMenu({ ...editingMenu, visible: e.target.checked })}
+                          className="w-4 h-4 rounded text-amber-500"
+                        />
+                        <span className="text-xs font-bold text-slate-800">
+                          Display this item in the website top navigation bar (Visible)
+                        </span>
+                      </label>
+                    </div>
+
+                    {/* Dialog Buttons */}
+                    <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                      <button
+                        type="button"
+                        onClick={() => setEditingMenu(null)}
+                        className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 text-xs font-bold hover:bg-slate-100 transition-colors cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!editingMenu.labelEn.trim()) {
+                            alert('Please enter a valid Primary Menu Label.');
+                            return;
+                          }
+                          if (isAddingNewMenu) {
+                            updateConfig((prev) => ({
+                              ...prev,
+                              menus: [...prev.menus, editingMenu],
+                            }));
+                          } else {
+                            updateConfig((prev) => ({
+                              ...prev,
+                              menus: prev.menus.map((m) => (m.id === editingMenu.id ? editingMenu : m)),
+                            }));
+                          }
+                          triggerToast();
+                          setEditingMenu(null);
+                        }}
+                        className="px-5 py-2 rounded-xl bg-amber-400 hover:bg-amber-500 text-slate-950 text-xs font-bold shadow-md shadow-amber-400/20 transition-all cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Check className="w-4 h-4 stroke-[3]" />
+                        <span>Save Changes</span>
+                      </button>
+                    </div>
+
+                  </div>
+                </div>
+              )}
+
+            </div>
+          )}
+
+          {/* ======================================================================= */}
+          {/* TAB 2: BACKGROUND & SCROLL CONFIGURATION                                 */}
+          {/* ======================================================================= */}
           {activeTab === 'background' && (
             <div className="space-y-6 max-w-4xl mx-auto">
               {/* Highlight Note */}
@@ -305,17 +827,17 @@ export const AdminPortalModal: React.FC = () => {
                 <div>
                   <strong className="font-bold">Persistent Background Scroll System:</strong>
                   <p className="mt-0.5 text-blue-800 leading-relaxed">
-                    The background photo remains fixed in the viewport as visitors scroll down the page. Select a Himalayan mountain preset below, or upload a custom company photograph.
+                    The Himalayan panoramic photography remains anchored in the viewport as visitors scroll down the full page, ensuring high visual immersion without disappearing.
                   </p>
                 </div>
               </div>
 
-              {/* Fixed on Scroll Toggle */}
+              {/* Fixed on Scroll Master Toggle */}
               <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center justify-between">
                 <div>
                   <div className="text-sm font-bold text-slate-900">Keep Background Fixed on Scroll (Persistent Background)</div>
                   <div className="text-xs text-slate-500">
-                    Background image stays visible throughout full-page scrolling without disappearing.
+                    When enabled, the background photo stays fixed in viewport during full-page scrolling.
                   </div>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
@@ -331,16 +853,16 @@ export const AdminPortalModal: React.FC = () => {
                     }}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                  <div className="w-12 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                 </label>
               </div>
 
-              {/* Background Preset Selector */}
+              {/* Preset Background Selector */}
               <div className="space-y-3">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
-                  1. Select Himalayan Mountain Presets (Click to switch live)
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                <div className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Curated Himalayan High-Resolution Presets (5 Options):
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                   {BACKGROUND_PRESETS.map((preset) => {
                     const isSelected = siteConfig.background.imageUrl === preset.url;
                     return (
@@ -357,28 +879,27 @@ export const AdminPortalModal: React.FC = () => {
                           }));
                           triggerToast();
                         }}
-                        className={`relative rounded-2xl overflow-hidden border-2 cursor-pointer transition-all group ${
+                        className={`group relative rounded-2xl overflow-hidden border-2 cursor-pointer transition-all ${
                           isSelected
-                            ? 'border-amber-500 ring-4 ring-amber-500/20 shadow-lg'
-                            : 'border-slate-200 hover:border-slate-300 opacity-80 hover:opacity-100 shadow-xs'
+                            ? 'border-amber-500 ring-4 ring-amber-500/20 shadow-md'
+                            : 'border-slate-200 hover:border-slate-400 bg-white'
                         }`}
                       >
-                        <div className="h-32 w-full overflow-hidden bg-slate-900 relative">
+                        <div className="h-28 w-full overflow-hidden bg-slate-900 relative">
                           <img
                             src={preset.thumbnail}
                             alt={preset.title}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
                           {isSelected && (
-                            <div className="absolute top-2 right-2 bg-amber-400 text-slate-950 p-1 rounded-full shadow-md">
+                            <div className="absolute top-2 right-2 bg-amber-400 text-slate-950 p-1 rounded-full shadow">
                               <Check className="w-3.5 h-3.5 stroke-[3]" />
                             </div>
                           )}
                         </div>
-                        <div className="p-3 bg-white">
-                          <div className="text-xs font-bold text-slate-900">{preset.title}</div>
-                          <div className="text-[10px] text-slate-500">{preset.subtitle}</div>
+                        <div className="p-2.5 bg-white">
+                          <div className="text-xs font-bold text-slate-900 truncate">{preset.title}</div>
+                          <div className="text-[10px] text-slate-500 truncate mt-0.5">{preset.subtitle}</div>
                         </div>
                       </div>
                     );
@@ -386,54 +907,49 @@ export const AdminPortalModal: React.FC = () => {
                 </div>
               </div>
 
-              {/* Direct Image Upload or Custom URL */}
-              <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
-                <div className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  2. Upload Custom Image File or Enter Web URL
+              {/* Custom Image Upload & URL */}
+              <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
+                <div className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                  Upload Custom Photograph or Enter Direct Image URL
                 </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* File Upload */}
+                  <label className="flex flex-col items-center justify-center p-5 border-2 border-dashed border-slate-300 hover:border-amber-500 rounded-xl cursor-pointer bg-slate-50 hover:bg-amber-50/20 transition-all text-center">
+                    <Upload className="w-6 h-6 text-slate-400 mb-1" />
+                    <span className="text-xs font-bold text-slate-800">Upload Photo from Device</span>
+                    <span className="text-[10px] text-slate-500 mt-0.5">Supports high-resolution JPG, PNG, and WebP</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            if (typeof reader.result === 'string') {
+                              updateConfig((prev) => ({
+                                ...prev,
+                                background: {
+                                  ...prev.background,
+                                  imageUrl: reader.result as string,
+                                  presetId: 'custom-upload',
+                                },
+                              }));
+                              triggerToast();
+                            }
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                  </label>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-                  {/* Local File Attachment */}
-                  <div>
-                    <label className="text-[11px] font-semibold text-slate-600 block mb-1.5">
-                      Local Image File Upload (JPG, PNG, WebP)
-                    </label>
-                    <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-slate-300 hover:border-amber-500 rounded-xl cursor-pointer bg-slate-50 hover:bg-amber-50/30 transition-all text-center">
-                      <Upload className="w-6 h-6 text-slate-400 mb-1" />
-                      <span className="text-xs font-bold text-slate-700">Select Background Image File</span>
-                      <span className="text-[10px] text-slate-500 mt-0.5">Click or drag to attach image file</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            const reader = new FileReader();
-                            reader.onloadend = () => {
-                              if (typeof reader.result === 'string') {
-                                updateConfig((prev) => ({
-                                  ...prev,
-                                  background: {
-                                    ...prev.background,
-                                    imageUrl: reader.result as string,
-                                    presetId: 'custom-uploaded',
-                                  },
-                                }));
-                                triggerToast();
-                              }
-                            };
-                            reader.readAsDataURL(file);
-                          }
-                        }}
-                      />
-                    </label>
-                  </div>
-
-                  {/* Direct Image URL */}
+                  {/* Direct URL */}
                   <div className="space-y-2">
-                    <label className="text-[11px] font-semibold text-slate-600 block">
-                      Or enter external image link (URL)
+                    <label className="text-xs font-medium text-slate-600 block">
+                      Direct Web Image Address (URL)
                     </label>
                     <div className="flex gap-2">
                       <input
@@ -441,7 +957,7 @@ export const AdminPortalModal: React.FC = () => {
                         placeholder="https://images.unsplash.com/..."
                         value={customImageUrl}
                         onChange={(e) => setCustomImageUrl(e.target.value)}
-                        className="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-300 focus:border-amber-500 outline-none"
+                        className="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-200 outline-none focus:border-amber-500"
                       />
                       <button
                         type="button"
@@ -459,35 +975,31 @@ export const AdminPortalModal: React.FC = () => {
                             triggerToast();
                           }
                         }}
-                        className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                        className="px-3.5 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 cursor-pointer"
                       >
                         Apply
                       </button>
                     </div>
-                    <p className="text-[10px] text-slate-400">
-                      You can provide a direct image link from Unsplash, Cloudinary, or your server.
-                    </p>
                   </div>
                 </div>
               </div>
 
-              {/* Visual Sliders: Opacity, Brightness, Blur, Tone */}
-              <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-5">
-                <div className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
-                  <Sliders className="w-4 h-4 text-amber-500" />
-                  <span>3. Fine-Tune Visual Effects (Opacity, Brightness, Blur)</span>
+              {/* Sliders: Opacity, Brightness, Blur */}
+              <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
+                <div className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                  Visual Fine-Tuning (Opacity, Brightness, Blur)
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
                   {/* Opacity */}
                   <div className="space-y-1.5">
-                    <div className="flex justify-between text-xs font-medium text-slate-700">
-                      <span>Background Opacity (Vividness)</span>
-                      <span className="font-mono font-bold text-amber-600">{siteConfig.background.opacity}%</span>
+                    <div className="flex justify-between font-medium text-slate-700">
+                      <span>Background Opacity</span>
+                      <span className="font-mono font-bold text-amber-700">{siteConfig.background.opacity}%</span>
                     </div>
                     <input
                       type="range"
-                      min="15"
+                      min="10"
                       max="100"
                       value={siteConfig.background.opacity}
                       onChange={(e) => {
@@ -497,15 +1009,15 @@ export const AdminPortalModal: React.FC = () => {
                           background: { ...prev.background, opacity: val },
                         }));
                       }}
-                      className="w-full accent-amber-500"
+                      className="w-full accent-amber-500 cursor-pointer"
                     />
                   </div>
 
                   {/* Brightness */}
                   <div className="space-y-1.5">
-                    <div className="flex justify-between text-xs font-medium text-slate-700">
+                    <div className="flex justify-between font-medium text-slate-700">
                       <span>Brightness</span>
-                      <span className="font-mono font-bold text-amber-600">{siteConfig.background.brightness}%</span>
+                      <span className="font-mono font-bold text-amber-700">{siteConfig.background.brightness}%</span>
                     </div>
                     <input
                       type="range"
@@ -519,15 +1031,15 @@ export const AdminPortalModal: React.FC = () => {
                           background: { ...prev.background, brightness: val },
                         }));
                       }}
-                      className="w-full accent-amber-500"
+                      className="w-full accent-amber-500 cursor-pointer"
                     />
                   </div>
 
                   {/* Blur */}
                   <div className="space-y-1.5">
-                    <div className="flex justify-between text-xs font-medium text-slate-700">
-                      <span>Background Blur</span>
-                      <span className="font-mono font-bold text-amber-600">{siteConfig.background.blur}px</span>
+                    <div className="flex justify-between font-medium text-slate-700">
+                      <span>Gaussian Blur Filter</span>
+                      <span className="font-mono font-bold text-amber-700">{siteConfig.background.blur}px</span>
                     </div>
                     <input
                       type="range"
@@ -541,23 +1053,24 @@ export const AdminPortalModal: React.FC = () => {
                           background: { ...prev.background, blur: val },
                         }));
                       }}
-                      className="w-full accent-amber-500"
+                      className="w-full accent-amber-500 cursor-pointer"
                     />
                   </div>
                 </div>
 
                 {/* Overlay Tone Selector */}
-                <div className="pt-2 border-t border-slate-100">
-                  <div className="text-[11px] font-bold text-slate-600 mb-2">Atmospheric Overlay Tone & Contrast:</div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                <div className="pt-3 border-t border-slate-100">
+                  <div className="text-[11px] font-bold text-slate-600 mb-2">Atmospheric Tone Filter:</div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {[
+                      { key: 'clear', label: 'Crystal Clear (Default)' },
                       { key: 'light', label: 'Clear Mountain Daylight' },
-                      { key: 'dark', label: 'Deep Evening Navy (High Contrast)' },
+                      { key: 'dark', label: 'Deep Evening Navy' },
                       { key: 'golden', label: 'Golden Sunset Amber' },
-                      { key: 'clear', label: 'No Overlay (Crystal Clear)' },
                     ].map((theme) => (
                       <button
                         key={theme.key}
+                        type="button"
                         onClick={() => {
                           updateConfig((prev) => ({
                             ...prev,
@@ -567,7 +1080,7 @@ export const AdminPortalModal: React.FC = () => {
                         }}
                         className={`p-2.5 rounded-xl text-xs font-bold border text-center transition-all cursor-pointer ${
                           siteConfig.background.overlayTheme === theme.key
-                            ? 'bg-amber-100 border-amber-500 text-slate-900 ring-2 ring-amber-400/30 font-bold'
+                            ? 'bg-amber-100 border-amber-500 text-slate-950 ring-2 ring-amber-400/30'
                             : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
                         }`}
                       >
@@ -580,189 +1093,18 @@ export const AdminPortalModal: React.FC = () => {
             </div>
           )}
 
-          {/* ========================================================================= */}
-          {/* TAB 2: MENU & NAVIGATION MANAGEMENT                                       */}
-          {/* ========================================================================= */}
-          {activeTab === 'menus' && (
-            <div className="space-y-6 max-w-4xl mx-auto">
-              <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start gap-3">
-                <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                <div>
-                  <strong className="font-bold">Menu &amp; Navigation Management:</strong>
-                  <p className="mt-0.5 text-amber-800 leading-relaxed">
-                    Freely customize the navigation links shown in the header and mobile drawer—including labels, highlight badges, visibility (On/Off), and display order.
-                  </p>
-                </div>
-              </div>
-
-              {/* Menu List */}
-              <div className="space-y-3">
-                {siteConfig.menus
-                  .slice()
-                  .sort((a, b) => a.order - b.order)
-                  .map((menu, idx) => (
-                    <div
-                      key={menu.id}
-                      className={`p-4 rounded-2xl bg-white border transition-all ${
-                        menu.visible ? 'border-slate-200 shadow-xs' : 'border-slate-200 bg-slate-100/60 opacity-60'
-                      }`}
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                          <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-600 text-xs font-bold flex items-center justify-center">
-                            {idx + 1}
-                          </span>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-bold text-slate-900">{menu.sublabel || ""}</span>
-                              <span className="text-xs text-slate-500 font-medium">({menu.labelEn})</span>
-                              {menu.badge && (
-                                <span className="bg-amber-400 text-slate-950 text-[10px] font-black px-1.5 py-0.2 rounded">
-                                  {menu.badge}
-                                </span>
-                              )}
-                            </div>
-                            <div className="text-[11px] text-slate-400 mt-0.5 font-mono">
-                              Target Section: #{menu.targetSectionId}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Action buttons: Move Up, Down, Visibility, Edit */}
-                        <div className="flex items-center gap-2 self-end sm:self-auto">
-                          {/* Move Up */}
-                          <button
-                            disabled={idx === 0}
-                            onClick={() => {
-                              const sorted = [...siteConfig.menus].sort((a, b) => a.order - b.order);
-                              if (idx > 0) {
-                                const current = sorted[idx];
-                                const prev = sorted[idx - 1];
-                                const tempOrder = current.order;
-                                current.order = prev.order;
-                                prev.order = tempOrder;
-                                updateConfig((cfg) => ({ ...cfg, menus: sorted }));
-                                triggerToast();
-                              }
-                            }}
-                            className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 disabled:opacity-30 disabled:pointer-events-none text-slate-600"
-                            title="Move Up"
-                          >
-                            <ArrowUp className="w-4 h-4" />
-                          </button>
-
-                          {/* Move Down */}
-                          <button
-                            disabled={idx === siteConfig.menus.length - 1}
-                            onClick={() => {
-                              const sorted = [...siteConfig.menus].sort((a, b) => a.order - b.order);
-                              if (idx < sorted.length - 1) {
-                                const current = sorted[idx];
-                                const next = sorted[idx + 1];
-                                const tempOrder = current.order;
-                                current.order = next.order;
-                                next.order = tempOrder;
-                                updateConfig((cfg) => ({ ...cfg, menus: sorted }));
-                                triggerToast();
-                              }
-                            }}
-                            className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 disabled:opacity-30 disabled:pointer-events-none text-slate-600"
-                            title="Move Down"
-                          >
-                            <ArrowDown className="w-4 h-4" />
-                          </button>
-
-                          {/* Visibility Toggle */}
-                          <button
-                            onClick={() => {
-                              updateConfig((prev) => ({
-                                ...prev,
-                                menus: prev.menus.map((m) =>
-                                  m.id === menu.id ? { ...m, visible: !m.visible } : m
-                                ),
-                              }));
-                              triggerToast();
-                            }}
-                            className={`p-1.5 rounded-lg border transition-colors ${
-                              menu.visible
-                                ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                                : 'border-slate-300 bg-slate-200 text-slate-500 hover:bg-slate-300'
-                            }`}
-                            title={menu.visible ? 'Hide Menu' : 'Show Menu'}
-                          >
-                            {menu.visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Inline Edit Form */}
-                      <div className="mt-3 pt-3 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
-                        <div>
-                          <label className="text-[10px] font-bold text-slate-400 block mb-0.5">Sublabel / Subtitle</label>
-                          <input
-                            type="text"
-                            value={menu.sublabel || ""}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              updateConfig((prev) => ({
-                                ...prev,
-                                menus: prev.menus.map((m) => (m.id === menu.id ? { ...m, labelKo: val } : m)),
-                              }));
-                            }}
-                            className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-medium focus:border-amber-500 outline-none"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="text-[10px] font-bold text-slate-400 block mb-0.5">Navigation Label (English)</label>
-                          <input
-                            type="text"
-                            value={menu.labelEn}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              updateConfig((prev) => ({
-                                ...prev,
-                                menus: prev.menus.map((m) => (m.id === menu.id ? { ...m, labelEn: val } : m)),
-                              }));
-                            }}
-                            className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-medium focus:border-amber-500 outline-none"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="text-[10px] font-bold text-slate-400 block mb-0.5">Highlight Badge (Optional)</label>
-                          <input
-                            type="text"
-                            placeholder="e.g. HOT, NEW, POPULAR"
-                            value={menu.badge || ''}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              updateConfig((prev) => ({
-                                ...prev,
-                                menus: prev.menus.map((m) => (m.id === menu.id ? { ...m, badge: val } : m)),
-                              }));
-                            }}
-                            className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-medium focus:border-amber-500 outline-none"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </div>
-          )}
-
-          {/* ========================================================================= */}
-          {/* TAB 3: POPUP MANAGEMENT (DUAL TYPE: TEMPLATE vs IMAGE)                     */}
-          {/* ========================================================================= */}
+          {/* ======================================================================= */}
+          {/* TAB 3: POPUPS & PROMOTIONS MANAGEMENT                                    */}
+          {/* ======================================================================= */}
           {activeTab === 'popup' && (
             <div className="space-y-6 max-w-4xl mx-auto">
-              {/* Master Popup Switch */}
+              
+              {/* Master Popup Switch Card */}
               <div className="p-5 rounded-2xl bg-white border-2 border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="text-base font-bold text-slate-900">
-                      Popup Modal Activation (Master Switch)
+                      Promotional Popup Modal (Master Switch)
                     </h3>
                     <span
                       className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase ${
@@ -775,24 +1117,22 @@ export const AdminPortalModal: React.FC = () => {
                     </span>
                   </div>
                   <p className="text-xs text-slate-500 mt-1">
-                    Initially disabled by default as requested. Enable this master switch when you wish to show the promotional modal to site visitors.
+                    Enable this master switch to display promotional announcements or special packages to site visitors.
                   </p>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  {/* Preview Button */}
                   <button
                     onClick={() => {
                       setPreviewPopupOpen(true);
                       setIsAdminOpen(false);
                     }}
-                    className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer whitespace-nowrap"
+                    className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer whitespace-nowrap"
                   >
                     <Eye className="w-4 h-4 text-amber-400" />
-                    <span>Live Preview Popup Modal</span>
+                    <span>Preview Live Popup Modal</span>
                   </button>
 
-                  {/* Toggle Switch */}
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
@@ -811,13 +1151,13 @@ export const AdminPortalModal: React.FC = () => {
                 </div>
               </div>
 
-              {/* Popup Type Selector: 1. Template vs 2. Image */}
+              {/* Popup Style: Template vs Image */}
               <div className="space-y-3">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
-                  Select Popup Style (Choose between 2 types):
+                  Select Popup Display Format (2 Options):
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Type 1: Built-in Template */}
+                  {/* Option 1: Template */}
                   <div
                     onClick={() => {
                       updateConfig((prev) => ({
@@ -834,11 +1174,11 @@ export const AdminPortalModal: React.FC = () => {
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
+                        <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">
                           1
                         </div>
                         <span className="text-sm font-bold text-slate-900">
-                          Type 1: Built-in Web Template Popup
+                          Format 1: Structured Web Template
                         </span>
                       </div>
                       {siteConfig.popup.type === 'template' && (
@@ -848,11 +1188,11 @@ export const AdminPortalModal: React.FC = () => {
                       )}
                     </div>
                     <p className="text-xs text-slate-600 leading-relaxed">
-                      Ready-to-use template modal. Simply enter the date, time, tour product name, and offer details—it formats automatically into a luxury booking popup without designing an image.
+                      Pre-formatted luxury modal. Simply input dates, time, tour product name, and discount details—formats automatically without designing an image.
                     </p>
                   </div>
 
-                  {/* Type 2: Image Attachment */}
+                  {/* Option 2: Image */}
                   <div
                     onClick={() => {
                       updateConfig((prev) => ({
@@ -869,11 +1209,11 @@ export const AdminPortalModal: React.FC = () => {
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+                        <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-xs">
                           2
                         </div>
                         <span className="text-sm font-bold text-slate-900">
-                          Type 2: Custom Image Flyer / Banner Popup
+                          Format 2: Custom Poster / Banner Image
                         </span>
                       </div>
                       {siteConfig.popup.type === 'image' && (
@@ -883,7 +1223,7 @@ export const AdminPortalModal: React.FC = () => {
                       )}
                     </div>
                     <p className="text-xs text-slate-600 leading-relaxed">
-                      Attach a custom designer poster, event flyer, or promotional graphic file to display as the popup banner.
+                      Upload your own graphic promotional poster, seasonal flyer, or event banner to display as the popup.
                     </p>
                   </div>
                 </div>
@@ -894,10 +1234,10 @@ export const AdminPortalModal: React.FC = () => {
                 <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
                   <div className="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider pb-2 border-b border-slate-100">
                     <Sparkles className="w-4 h-4 text-amber-500" />
-                    <span>Template Popup Details &amp; Copy</span>
+                    <span>Template Popup Copy &amp; Details</span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                     <div>
                       <label className="text-[11px] font-bold text-slate-600 block mb-1">
                         1. Ribbon Badge
@@ -916,13 +1256,13 @@ export const AdminPortalModal: React.FC = () => {
                           }));
                         }}
                         placeholder="e.g. 2026 AUTUMN PEAK PROMOTION"
-                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-amber-500 outline-none"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-amber-500 outline-none"
                       />
                     </div>
 
                     <div>
                       <label className="text-[11px] font-bold text-slate-600 block mb-1">
-                        2. Main Title
+                        2. Main Headline Title
                       </label>
                       <input
                         type="text"
@@ -938,7 +1278,7 @@ export const AdminPortalModal: React.FC = () => {
                           }));
                         }}
                         placeholder="e.g. Everest Scenic Flight Early Bird Special"
-                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-amber-500 outline-none"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-amber-500 outline-none"
                       />
                     </div>
 
@@ -960,7 +1300,7 @@ export const AdminPortalModal: React.FC = () => {
                           }));
                         }}
                         placeholder="e.g. Oct 01 – Nov 30, 2026"
-                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-amber-500 outline-none"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-amber-500 outline-none"
                       />
                     </div>
 
@@ -982,13 +1322,13 @@ export const AdminPortalModal: React.FC = () => {
                           }));
                         }}
                         placeholder="e.g. Daily Departures 06:30 / 07:15 (Kathmandu TIA)"
-                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-amber-500 outline-none"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-amber-500 outline-none"
                       />
                     </div>
 
                     <div className="sm:col-span-2">
                       <label className="text-[11px] font-bold text-slate-600 block mb-1">
-                        5. Target Tour / Product Name
+                        5. Target Tour / Experience Name
                       </label>
                       <input
                         type="text"
@@ -1004,13 +1344,13 @@ export const AdminPortalModal: React.FC = () => {
                           }));
                         }}
                         placeholder="e.g. Everest Scenic Window-Guaranteed Flight (1-Hour Return)"
-                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold focus:border-amber-500 outline-none"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:border-amber-500 outline-none"
                       />
                     </div>
 
                     <div className="sm:col-span-2">
                       <label className="text-[11px] font-bold text-slate-600 block mb-1">
-                        6. Special Offer / Discount Details
+                        6. Special Offer &amp; Discount Details
                       </label>
                       <input
                         type="text"
@@ -1025,14 +1365,14 @@ export const AdminPortalModal: React.FC = () => {
                             },
                           }));
                         }}
-                        placeholder="e.g. Early Bird 25% Instant Savings ($198 Special) + Free Hotel Transfers"
-                        className="w-full px-3 py-2 rounded-xl border border-amber-300 bg-amber-50/50 text-xs font-bold text-amber-950 focus:border-amber-500 outline-none"
+                        placeholder="e.g. Early Bird 25% Instant Savings ($198 Special) + Complimentary Hotel Transfers"
+                        className="w-full px-3 py-2 rounded-xl border border-amber-300 bg-amber-50/50 font-bold text-amber-950 focus:border-amber-500 outline-none"
                       />
                     </div>
 
                     <div className="sm:col-span-2">
                       <label className="text-[11px] font-bold text-slate-600 block mb-1">
-                        7. Detailed Description
+                        7. Detailed Terms &amp; Description
                       </label>
                       <textarea
                         rows={3}
@@ -1047,14 +1387,14 @@ export const AdminPortalModal: React.FC = () => {
                             },
                           }));
                         }}
-                        placeholder="Enter detailed description and terms..."
-                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs leading-relaxed focus:border-amber-500 outline-none"
+                        placeholder="Enter terms, inclusions, and reservation details..."
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 leading-relaxed focus:border-amber-500 outline-none"
                       />
                     </div>
 
                     <div>
                       <label className="text-[11px] font-bold text-slate-600 block mb-1">
-                        8. Action Button Text
+                        8. Action Button Label
                       </label>
                       <input
                         type="text"
@@ -1069,13 +1409,13 @@ export const AdminPortalModal: React.FC = () => {
                             },
                           }));
                         }}
-                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-amber-500 outline-none"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-amber-500 outline-none"
                       />
                     </div>
 
                     <div>
                       <label className="text-[11px] font-bold text-slate-600 block mb-1">
-                        9. Destination Target Section
+                        9. Target Page Section
                       </label>
                       <select
                         value={siteConfig.popup.template.targetSectionId}
@@ -1089,13 +1429,13 @@ export const AdminPortalModal: React.FC = () => {
                             },
                           }));
                         }}
-                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-amber-500 outline-none"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-amber-500 bg-white outline-none cursor-pointer"
                       >
-                        <option value="aviation">Domestic Flights &amp; Scenic Tours (#aviation)</option>
-                        <option value="sanctuaries">Hotels &amp; Mountain Lodges (#sanctuaries)</option>
-                        <option value="fleet">4WD Vehicles &amp; Driver (#fleet)</option>
-                        <option value="odysseys">Combo Packages (#odysseys)</option>
-                        <option value="about">About Us &amp; Credentials (#about)</option>
+                        {targetSectionOptions.map((opt) => (
+                          <option key={opt.id} value={opt.id}>
+                            {opt.name}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   </div>
@@ -1107,18 +1447,18 @@ export const AdminPortalModal: React.FC = () => {
                 <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
                   <div className="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider pb-2 border-b border-slate-100">
                     <ImageIcon className="w-4 h-4 text-amber-500" />
-                    <span>Image File Attachment &amp; Destination Link</span>
+                    <span>Image Poster Upload &amp; Destination Link</span>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Image Upload */}
                     <div>
                       <label className="text-[11px] font-bold text-slate-600 block mb-1.5">
-                        Upload Flyer / Promotional Banner File
+                        Upload Promotional Flyer / Poster File
                       </label>
                       <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-300 hover:border-amber-500 rounded-xl cursor-pointer bg-slate-50 hover:bg-amber-50/20 transition-all text-center">
                         <Upload className="w-8 h-8 text-slate-400 mb-1" />
-                        <span className="text-xs font-bold text-slate-800">Attach Image File</span>
+                        <span className="text-xs font-bold text-slate-800">Attach Poster Graphic File</span>
                         <span className="text-[10px] text-slate-500 mt-0.5">Supports JPG, PNG, WebP</span>
                         <input
                           type="file"
@@ -1154,7 +1494,7 @@ export const AdminPortalModal: React.FC = () => {
                     <div className="space-y-3">
                       <div>
                         <label className="text-[11px] font-bold text-slate-600 block mb-1">
-                          Or enter direct web image address (URL)
+                          Or Enter Web Image Address (URL)
                         </label>
                         <div className="flex gap-2">
                           <input
@@ -1182,7 +1522,7 @@ export const AdminPortalModal: React.FC = () => {
                                 triggerToast();
                               }
                             }}
-                            className="px-3 py-1.5 bg-slate-900 text-white rounded-xl text-xs font-bold"
+                            className="px-3 py-1.5 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 cursor-pointer"
                           >
                             Apply
                           </button>
@@ -1192,7 +1532,7 @@ export const AdminPortalModal: React.FC = () => {
                       {/* Current Image Thumbnail */}
                       <div>
                         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                          Current Popup Image Preview:
+                          Current Banner Preview:
                         </div>
                         <div className="w-full h-32 rounded-xl bg-slate-900 overflow-hidden relative border border-slate-200">
                           <img
@@ -1208,7 +1548,7 @@ export const AdminPortalModal: React.FC = () => {
                   {/* Target Link */}
                   <div className="pt-2">
                     <label className="text-[11px] font-bold text-slate-600 block mb-1">
-                      Destination Link URL or Page Section (#aviation, #odysseys, etc.)
+                      Destination Link URL or Target Section (#aviation, #odysseys, etc.)
                     </label>
                     <input
                       type="text"
@@ -1223,7 +1563,7 @@ export const AdminPortalModal: React.FC = () => {
                           },
                         }));
                       }}
-                      placeholder="e.g. #aviation or https://example.com"
+                      placeholder="e.g. #aviation or external URL"
                       className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono focus:border-amber-500 outline-none"
                     />
                   </div>
@@ -1252,26 +1592,28 @@ export const AdminPortalModal: React.FC = () => {
                   type="button"
                   onClick={() => {
                     resetDailyDismissal();
-                    alert('24-hour dismissal history has been reset. Refresh the page to test the popup modal.');
+                    alert('24-hour dismissal cache has been reset. Refresh the main page to test the popup modal.');
                   }}
                   className="text-xs text-blue-600 hover:text-blue-800 font-bold underline cursor-pointer self-start sm:self-auto"
                 >
-                  [Test Tool] Reset 24-Hour Dismissal Cache
+                  [Testing Tool] Reset 24-Hour Dismissal Cache
                 </button>
               </div>
+
             </div>
           )}
 
-          {/* ========================================================================= */}
-          {/* TAB 4: COMPANY INFO & TOP TICKER NOTICE                                   */}
-          {/* ========================================================================= */}
+          {/* ======================================================================= */}
+          {/* TAB 4: COMPANY INFO & TOP LIVE TICKER                                    */}
+          {/* ======================================================================= */}
           {activeTab === 'company' && (
             <div className="space-y-6 max-w-4xl mx-auto">
+              
               {/* Ticker Notice */}
               <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                    Top Live Announcement Ticker
+                    Top Live Announcement Ticker Bar
                   </div>
                   <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700">
                     <input
@@ -1286,7 +1628,7 @@ export const AdminPortalModal: React.FC = () => {
                       }}
                       className="w-4 h-4 rounded text-amber-500"
                     />
-                    <span>Show Top Ticker</span>
+                    <span>Enable Top Announcement Ticker</span>
                   </label>
                 </div>
                 <input
@@ -1307,7 +1649,7 @@ export const AdminPortalModal: React.FC = () => {
               {/* Company Credentials Form */}
               <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
                 <div className="text-xs font-bold text-slate-800 uppercase tracking-wider pb-2 border-b border-slate-100">
-                  Agency Credentials &amp; Government Licenses
+                  Official Agency Profile &amp; Government Licenses
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -1336,7 +1678,7 @@ export const AdminPortalModal: React.FC = () => {
                         const val = e.target.value;
                         updateConfig((prev) => ({
                           ...prev,
-                          company: { ...prev.company, nameKo: val },
+                          company: { ...prev.company, tagline: val },
                         }));
                       }}
                       className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-amber-500 outline-none"
@@ -1360,7 +1702,7 @@ export const AdminPortalModal: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-bold text-slate-600 block mb-1">Emergency WhatsApp Number</label>
+                    <label className="text-[11px] font-bold text-slate-600 block mb-1">Emergency 24/7 WhatsApp Number</label>
                     <input
                       type="text"
                       value={siteConfig.company.whatsapp}
@@ -1392,7 +1734,7 @@ export const AdminPortalModal: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-bold text-slate-600 block mb-1">Nepal Government Registration Number (Reg No.)</label>
+                    <label className="text-[11px] font-bold text-slate-600 block mb-1">Nepal Government Company Registration No.</label>
                     <input
                       type="text"
                       value={siteConfig.company.registrationNumber}
@@ -1408,7 +1750,7 @@ export const AdminPortalModal: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-bold text-slate-600 block mb-1">Department of Tourism License Number</label>
+                    <label className="text-[11px] font-bold text-slate-600 block mb-1">Department of Tourism License No.</label>
                     <input
                       type="text"
                       value={siteConfig.company.tourismLicense}
@@ -1440,19 +1782,21 @@ export const AdminPortalModal: React.FC = () => {
                   </div>
                 </div>
               </div>
+
             </div>
           )}
 
-          {/* ========================================================================= */}
-          {/* TAB 5: SECURITY & BACKUP                                                  */}
-          {/* ========================================================================= */}
+          {/* ======================================================================= */}
+          {/* TAB 5: SECURITY & DATA BACKUP                                            */}
+          {/* ======================================================================= */}
           {activeTab === 'security' && (
             <div className="space-y-6 max-w-4xl mx-auto">
+              
               {/* Change Admin Password */}
               <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
                 <div className="text-xs font-bold text-slate-800 uppercase tracking-wider pb-2 border-b border-slate-100 flex items-center gap-2">
                   <Lock className="w-4 h-4 text-amber-500" />
-                  <span>Change Administrator Password</span>
+                  <span>Change Administrator Password (PIN)</span>
                 </div>
 
                 <div className="max-w-md space-y-3">
@@ -1461,7 +1805,7 @@ export const AdminPortalModal: React.FC = () => {
                   </div>
                   <div>
                     <label className="text-[11px] font-bold text-slate-600 block mb-1">
-                      Enter New Admin PIN
+                      Enter New Admin Password
                     </label>
                     <input
                       type="password"
@@ -1470,7 +1814,7 @@ export const AdminPortalModal: React.FC = () => {
                         setNewPin(e.target.value);
                         setPinChangeSuccess(false);
                       }}
-                      placeholder="New password..."
+                      placeholder="Enter new password..."
                       className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono outline-none focus:border-amber-500"
                     />
                   </div>
@@ -1510,9 +1854,9 @@ export const AdminPortalModal: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Export */}
                   <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-                    <div className="text-xs font-bold text-slate-900">Export Configuration (JSON)</div>
+                    <div className="text-xs font-bold text-slate-900">Download Configuration Backup</div>
                     <p className="text-[11px] text-slate-500 leading-relaxed">
-                      Download all current background settings, menus, popups, and agency details as a JSON file to your device.
+                      Download all current menus, persistent background settings, popups, and official details as a JSON file.
                     </p>
                     <button
                       onClick={() => {
@@ -1528,9 +1872,9 @@ export const AdminPortalModal: React.FC = () => {
 
                   {/* Import */}
                   <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-                    <div className="text-xs font-bold text-slate-900">Import Configuration (JSON)</div>
+                    <div className="text-xs font-bold text-slate-900">Restore Configuration from File</div>
                     <p className="text-[11px] text-slate-500 leading-relaxed">
-                      Upload a previously saved JSON backup file to restore all website settings immediately.
+                      Upload a previously exported JSON backup file to immediately restore website settings.
                     </p>
                     <label className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
                       <Upload className="w-4 h-4" />
@@ -1547,7 +1891,7 @@ export const AdminPortalModal: React.FC = () => {
                               const content = event.target?.result;
                               if (typeof content === 'string') {
                                 if (importConfigJson(content)) {
-                                  alert('Settings successfully restored from backup.');
+                                  alert('All settings have been successfully restored from backup.');
                                 } else {
                                   alert('Invalid JSON configuration file.');
                                 }
@@ -1564,12 +1908,12 @@ export const AdminPortalModal: React.FC = () => {
                 {/* Reset to Factory Default */}
                 <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
                   <div>
-                    <div className="text-xs font-bold text-rose-700">Reset All Settings to Defaults</div>
-                    <div className="text-[10px] text-slate-500">Restore background, menu, and popup configurations back to factory defaults.</div>
+                    <div className="text-xs font-bold text-rose-700">Reset All Settings to Factory Defaults</div>
+                    <div className="text-[10px] text-slate-500">Restore background, menu items, and popup configuration back to original defaults.</div>
                   </div>
                   <button
                     onClick={() => {
-                      if (confirm('Are you sure you want to reset all configurations to factory defaults?')) {
+                      if (confirm('Are you sure you want to reset all configurations to factory defaults? This action cannot be undone.')) {
                         resetToDefault();
                         triggerToast();
                       }
@@ -1577,27 +1921,30 @@ export const AdminPortalModal: React.FC = () => {
                     className="px-3.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
-                    <span>Reset to Default</span>
+                    <span>Reset to Defaults</span>
                   </button>
                 </div>
               </div>
+
             </div>
           )}
 
         </div>
 
-        {/* Footer Bar with Status and Quick Actions */}
+        {/* ========================================================================= */}
+        {/* FOOTER BAR: Instant Feedback & Save/Close                                 */}
+        {/* ========================================================================= */}
         <div className="px-6 py-3 bg-white border-t border-slate-200 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2 text-xs text-slate-500">
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span>All changes are saved live and persist seamlessly across Vercel and local environments.</span>
+            <span>All changes are saved live and persist automatically across user sessions.</span>
           </div>
 
           <div className="flex items-center gap-3">
             {saveToast && (
               <span className="text-xs text-emerald-600 font-bold flex items-center gap-1 animate-fadeIn">
-                <Check className="w-4 h-4" />
-                <span>Saved!</span>
+                <Check className="w-4 h-4 stroke-[3]" />
+                <span>Settings saved!</span>
               </span>
             )}
 
@@ -1605,7 +1952,7 @@ export const AdminPortalModal: React.FC = () => {
               onClick={() => setIsAdminOpen(false)}
               className="px-5 py-2 rounded-xl bg-amber-400 hover:bg-amber-500 text-slate-950 text-xs font-bold shadow-md shadow-amber-400/20 transition-all cursor-pointer"
             >
-              Save & Close Portal
+              Save &amp; Close Portal
             </button>
           </div>
         </div>
