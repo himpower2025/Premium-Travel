@@ -18,7 +18,7 @@ interface SiteConfigContextValue {
   resetDailyDismissal: () => void;
 }
 
-const STORAGE_KEY = 'nepal_travel_site_config_v3';
+const STORAGE_KEY = 'nepal_travel_site_config_v4';
 const AUTH_KEY = 'nepal_travel_admin_auth';
 const POPUP_DISMISS_KEY = 'nepal_travel_popup_dismissed_date';
 
